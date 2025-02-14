@@ -21,14 +21,18 @@ assembleApplication:
   script:
     - ./gradlew assembleDebug
     - mv app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/Debug_$PROJECT_NAME.apk
+    - ./gradlew assembleRelease
+    - mv app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/Release_$PROJECT_NAME.apk
   artifacts:
     name: $APPLICATION_ID
     paths:
       - app/build/outputs/apk/debug/Debug_$PROJECT_NAME.apk
+      - app/build/outputs/apk/release/Release_$PROJECT_NAME.apk
   after_script:
     - |
       MESSAGE="$CI_COMMIT_MESSAGE"
       curl -s -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage -d "chat_id=$TELEGRAM_CHAT_ID" -d "text=$MESSAGE"
 
       curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/debug/Debug_$PROJECT_NAME.apk -F text=MESSAGE -H "Content-Type: multipart/form-data" -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument
+      curl -F chat_id=$TELEGRAM_CHAT_ID -F document=@app/build/outputs/apk/release/Release_$PROJECT_NAME.apk -F text=MESSAGE -H "Content-Type: multipart/form-data" -X POST https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendDocument
 
