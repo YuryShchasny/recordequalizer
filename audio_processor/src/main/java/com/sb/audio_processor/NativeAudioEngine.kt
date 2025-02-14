@@ -48,7 +48,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
                 job.join()
                 return@withContext isPlaying()
             }
-            return@withContext false
+            return@withContext true
         }
     }
 
