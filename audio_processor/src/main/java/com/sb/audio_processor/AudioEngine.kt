@@ -1,10 +1,10 @@
 package com.sb.audio_processor
 
 interface AudioEngine {
-    fun onStart()
-    fun onStop()
-    suspend fun playAudio()
-    suspend fun pauseAudio()
+    suspend fun onStart()
+    suspend fun onStop()
+    suspend fun playAudio(): Boolean
+    suspend fun pauseAudio(): Boolean
     suspend fun audioIsPlaying(): Boolean
     suspend fun setInputDevice(id: Int)
     suspend fun setOutputDevice(id: Int)

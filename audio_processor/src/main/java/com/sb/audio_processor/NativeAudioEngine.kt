@@ -3,11 +3,14 @@ package com.sb.audio_processor
 import android.content.Context
 import android.media.AudioManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 
 class NativeAudioEngine(context: Context) : AudioEngine {
-    private val synthesizerMutex = Object()
+    private val mutex = Mutex()
 
     private external fun create(): Boolean
     private external fun delete()
@@ -17,74 +20,84 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     private external fun setRecordingDeviceId(deviceId: Int)
     private external fun setPlaybackDeviceId(deviceId: Int)
     private external fun setDefaultStreamValues(sampleRate: Int, framesPerBurst: Int)
+
     private external fun nativeChangeLeftChannel(enabled: Boolean)
+
     private external fun nativeChangeRightChannel(enabled: Boolean)
 
     init {
         setDefaultStreamValues(context)
     }
 
-    override fun onStart() {
-        synchronized(synthesizerMutex) {
+    override suspend fun onStart() {
+        mutex.withLock {
             create()
         }
     }
 
-    override fun onStop() {
-        synchronized(synthesizerMutex) {
+    override suspend fun onStop() {
+        mutex.withLock {
             delete()
         }
     }
 
-    override suspend fun playAudio() = withContext(Dispatchers.Default) {
-        synchronized(synthesizerMutex) {
-            play()
+    override suspend fun playAudio(): Boolean = withContext(Dispatchers.Default) {
+        mutex.withLock {
+            if(!isPlaying()) {
+                val job = launch { play() }
+                job.join()
+                return@withContext isPlaying()
+            }
+            return@withContext false
         }
     }
 
     override suspend fun pauseAudio() = withContext(Dispatchers.Default) {
-        synchronized(synthesizerMutex) {
-            stop()
+        mutex.withLock {
+            if(isPlaying()) {
+                val job = launch { stop() }
+                job.join()
+                return@withContext isPlaying()
+            }
+            return@withContext false
         }
     }
 
     override suspend fun audioIsPlaying(): Boolean = withContext(Dispatchers.Default) {
-        synchronized(synthesizerMutex) {
-            return@withContext isPlaying()
-        }
+        return@withContext isPlaying()
     }
 
-    override suspend fun setInputDevice(id: Int) {
-        synchronized(synthesizerMutex) {
+    override suspend fun setInputDevice(id: Int) = withContext(Dispatchers.Default) {
+        mutex.withLock {
             setRecordingDeviceId(id)
         }
     }
 
-    override suspend fun setOutputDevice(id: Int) {
-        synchronized(synthesizerMutex) {
+    override suspend fun setOutputDevice(id: Int) = withContext(Dispatchers.Default) {
+        mutex.withLock {
             setPlaybackDeviceId(id)
         }
     }
 
-    override suspend fun changeLeftChannel(enabled: Boolean) {
-        synchronized(synthesizerMutex) {
+    override suspend fun changeLeftChannel(enabled: Boolean) = withContext(Dispatchers.Default) {
+        mutex.withLock {
             nativeChangeLeftChannel(enabled)
         }
     }
 
-    override suspend fun changeRightChannel(enabled: Boolean) {
-        synchronized(synthesizerMutex) {
+    override suspend fun changeRightChannel(enabled: Boolean) = withContext(Dispatchers.Default) {
+        mutex.withLock {
             nativeChangeRightChannel(enabled)
         }
     }
 
     private fun setDefaultStreamValues(context: Context) {
-            val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val sampleRateStr = myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
-            val defaultSampleRate = sampleRateStr.toInt()
-            val framesPerBurstStr =
-                myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)
-            val defaultFramesPerBurst = framesPerBurstStr.toInt()
-            setDefaultStreamValues(defaultSampleRate, defaultFramesPerBurst)
+        val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val sampleRateStr = myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)
+        val defaultSampleRate = sampleRateStr.toInt()
+        val framesPerBurstStr =
+            myAudioMgr.getProperty(AudioManager.PROPERTY_OUTPUT_FRAMES_PER_BUFFER)
+        val defaultFramesPerBurst = framesPerBurstStr.toInt()
+        setDefaultStreamValues(defaultSampleRate, defaultFramesPerBurst)
     }
 }

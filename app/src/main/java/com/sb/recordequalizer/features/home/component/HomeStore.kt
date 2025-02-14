@@ -40,11 +40,15 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
             }
         }
         lifecycle.doOnStop {
-            audioEngine.onStop()
-            _uiState.update { it.copy(playing = false) }
+            launchIO {
+                audioEngine.onStop()
+                _uiState.update { it.copy(playing = false) }
+            }
         }
         lifecycle.doOnStart {
-            audioEngine.onStart()
+            launchIO {
+                audioEngine.onStart()
+            }
         }
     }
 
@@ -60,8 +64,9 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
 
             Intent.PlayPause -> {
                 launchIO {
-                    if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
-                    _uiState.update { it.copy(playing = !it.playing) }
+                    val result =
+                        if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
+                    _uiState.update { it.copy(playing = result) }
                 }
             }
 
