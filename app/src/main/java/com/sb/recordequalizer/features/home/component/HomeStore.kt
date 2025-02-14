@@ -30,7 +30,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         val inputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
             .filter { it.type == AudioDeviceInfo.TYPE_BUILTIN_MIC && it.address != "back" }
         val outputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            .filter { it.type != AudioDeviceInfo.TYPE_TELEPHONY}
+            .filter { it.type != AudioDeviceInfo.TYPE_TELEPHONY }
         launchIO {
             _uiState.update {
                 it.copy(
@@ -39,8 +39,13 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                 )
             }
         }
-        lifecycle.doOnStop { audioEngine.onStop() }
-        lifecycle.doOnStart { audioEngine.onStart() }
+        lifecycle.doOnStop {
+            audioEngine.onStop()
+            _uiState.update { it.copy(playing = false) }
+        }
+        lifecycle.doOnStart {
+            audioEngine.onStart()
+        }
     }
 
     fun dispatchIntent(intent: Intent) {
@@ -81,6 +86,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                     audioEngine.changeLeftChannel(intent.enabled)
                 }
             }
+
             is Intent.ChangeRightChannel -> {
                 launchIO {
                     audioEngine.changeRightChannel(intent.enabled)
