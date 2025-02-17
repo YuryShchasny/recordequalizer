@@ -15,29 +15,27 @@ public:
             void *outputData,
             int numOutputFrames) {
 
-        const int16_t *input = static_cast<const int16_t *>(inputData);
-        int16_t *output = static_cast<int16_t *>(outputData);
+        const auto *input = static_cast<const int16_t *>(inputData);
+        auto *output = static_cast<int16_t *>(outputData);
 
         int32_t samplesPerFrame = getOutputStream()->getChannelCount();
         int32_t numInputSamples = numInputFrames * samplesPerFrame;
         int32_t numOutputSamples = numOutputFrames * samplesPerFrame;
 
         int32_t samplesToProcess = std::min(numInputSamples, numOutputSamples);
-        for (int32_t i = 0; i < samplesToProcess; i++) {
-            if (i % 2 == 0) {
-                if (leftChannelEnabled) {
-                    *output++ = processSample(*input++);
-                } else {
-                    *output++ = 0;
-                    *input++;
-                }
+        for (int32_t i = 0; i < samplesToProcess; i += 2) {
+            int16_t frame[2] = {*input, *(input + 1)};
+            input += 2;
+            auto processOut = processFrame(frame);
+            if (leftChannelEnabled) {
+                *output++ = processOut[0];
             } else {
-                if (rightChannelEnabled) {
-                    *output++ = processSample(*input++);
-                } else {
-                    *output++ = 0;
-                    *input++;
-                }
+                *output++ = 0;
+            }
+            if (rightChannelEnabled) {
+                *output++ = processOut[1];
+            } else {
+                *output++ = 0;
             }
         }
 
@@ -50,15 +48,18 @@ public:
     }
 
 private:
-    static int16_t processSample(int16_t input) {
-        auto mInput = (int32_t) (input);
-        mInput = mInput * 3;
-        if (mInput > SHRT_MAX) {
-            mInput = SHRT_MAX;
-        } else if (mInput < SHRT_MIN) {
-            mInput = SHRT_MIN;
+    static short *processFrame(int16_t frame[2]) {
+        int32_t mInput[2] = {(int32_t) frame[0], (int32_t) frame[1]};
+        for (int &i: mInput) {
+            i = i * 3;
+            if (i > SHRT_MAX) {
+                i = SHRT_MAX;
+            } else if (i < SHRT_MIN) {
+                i = SHRT_MIN;
+            }
         }
-        return (int16_t) mInput;
+        int16_t mOutput[2] = {(int16_t) mInput[0], (int16_t) mInput[1]};
+        return mOutput;
     }
 };
 
