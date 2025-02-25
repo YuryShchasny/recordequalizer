@@ -13,7 +13,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 abstract class BaseStore : InstanceKeeper.Instance, KoinComponent {
-    private val coroutineManager: CoroutineManager by inject()
+    private val coroutineManager by inject<CoroutineManager>()
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
