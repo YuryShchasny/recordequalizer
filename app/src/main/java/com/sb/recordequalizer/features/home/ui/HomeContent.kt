@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -54,10 +55,34 @@ fun HomeContent(
                 onPlayClick = { component.homeStore.dispatchIntent(HomeStore.Intent.PlayPause) },
                 inputDevices = state.inputDevices,
                 outputDevices = state.outputDevices,
-                onSelectInputDevice = { component.homeStore.dispatchIntent(HomeStore.Intent.SelectInputDevice(it)) },
-                onSelectOutputDevice = { component.homeStore.dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) },
-                onLeftChannelChanged = { component.homeStore.dispatchIntent(HomeStore.Intent.ChangeLeftChannel(it)) },
-                onRightChannelChanged = { component.homeStore.dispatchIntent(HomeStore.Intent.ChangeRightChannel(it)) },
+                onSelectInputDevice = {
+                    component.homeStore.dispatchIntent(
+                        HomeStore.Intent.SelectInputDevice(
+                            it
+                        )
+                    )
+                },
+                onSelectOutputDevice = {
+                    component.homeStore.dispatchIntent(
+                        HomeStore.Intent.SelectOutputDevice(
+                            it
+                        )
+                    )
+                },
+                onLeftChannelChanged = {
+                    component.homeStore.dispatchIntent(
+                        HomeStore.Intent.ChangeLeftChannel(
+                            it
+                        )
+                    )
+                },
+                onRightChannelChanged = {
+                    component.homeStore.dispatchIntent(
+                        HomeStore.Intent.ChangeRightChannel(
+                            it
+                        )
+                    )
+                },
             )
         } else {
             RequestPermissionContent(permissionRequestLauncher = permissionRequestLauncher)
@@ -78,11 +103,25 @@ private fun HomeScreenContent(
     onPlayClick: () -> Unit
 ) {
     Box(modifier = modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
-        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-            AudioDeviceDropDownMenu(list = inputDevices, label = AppRes.strings.recordDevice, onSelected = onSelectInputDevice)
-            AudioDeviceDropDownMenu(list = outputDevices, label = AppRes.strings.playbackDevice, onSelected = onSelectOutputDevice)
-            if(isPlaying) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            AudioDeviceDropDownMenu(
+                modifier = Modifier.fillMaxWidth(),
+                list = inputDevices,
+                label = AppRes.strings.recordDevice,
+                onSelected = onSelectInputDevice
+            )
+            AudioDeviceDropDownMenu(
+                modifier = Modifier.fillMaxWidth(),
+                list = outputDevices,
+                label = AppRes.strings.playbackDevice,
+                onSelected = onSelectOutputDevice
+            )
+            if (isPlaying) {
                 ChannelCheckboxes(
+                    modifier = Modifier.fillMaxWidth(),
                     onLeftChannelChanged = onLeftChannelChanged,
                     onRightChannelChanged = onRightChannelChanged
                 )

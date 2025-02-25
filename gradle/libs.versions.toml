@@ -14,11 +14,6 @@ media3 = "1.5.1"
 room = "2.6.1"
 ksp = "2.1.0-1.0.29"
 datastore = "1.1.2"
-junit = "4.13.2"
-junitVersion = "1.2.1"
-espressoCore = "3.6.1"
-appcompat = "1.7.0"
-material = "1.12.0"
 
 
 [libraries]
@@ -28,7 +23,7 @@ androidx-activity-compose = { group = "androidx.activity", name = "activity-comp
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
-androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "coreSplashscreen" }
 accompanist-systemuicontroller = { module = "com.google.accompanist:accompanist-systemuicontroller", version.ref = "accompanistSystemuicontroller" }
@@ -48,11 +43,6 @@ koin-android = { group = "io.insert-koin", name = "koin-android" }
 
 # CPP libraries
 oboe = { module = "com.google.oboe:oboe", version.ref = "oboe" }
-junit = { group = "junit", name = "junit", version.ref = "junit" }
-androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -66,7 +56,7 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ui = [
     "androidx-ui",
     "androidx-ui-graphics",
-    "androidx-ui-tooling-preview",
+    "androidx-ui-tooling",
     "androidx-material3"
 ]
 decompose = [
