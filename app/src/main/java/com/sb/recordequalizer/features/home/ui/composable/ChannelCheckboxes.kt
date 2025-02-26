@@ -3,6 +3,7 @@ package com.sb.recordequalizer.features.home.ui.composable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,9 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sb.core.resources.AppRes
+import com.sb.core.resources.theme.ColorUiType
+import com.sb.core.resources.theme.EqualizerTheme
 
 @Composable
 fun ChannelCheckboxes(
@@ -25,16 +29,26 @@ fun ChannelCheckboxes(
     var rightChannelState by remember { mutableStateOf(true) }
     Row(
         modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(checked = leftChannelState, onCheckedChange = {
-                leftChannelState = it
-                onLeftChannelChanged(it)
-            })
+            Checkbox(
+                checked = leftChannelState,
+                onCheckedChange = {
+                    leftChannelState = it
+                    onLeftChannelChanged(it)
+                },
+                colors = CheckboxDefaults.colors().copy(
+                    checkedCheckmarkColor = AppRes.colors.background,
+                    checkedBoxColor = AppRes.colors.secondary,
+                    checkedBorderColor = AppRes.colors.secondary,
+                    uncheckedBorderColor = AppRes.colors.secondary
+                ),
+            )
             Text(
                 text = AppRes.strings.leftChannel,
                 color = AppRes.colors.primary,
@@ -44,12 +58,21 @@ fun ChannelCheckboxes(
         }
 
         Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Checkbox(checked = rightChannelState, onCheckedChange = {
-                rightChannelState = it
-                onRightChannelChanged(it)
-            })
+            Checkbox(
+                checked = rightChannelState, onCheckedChange = {
+                    rightChannelState = it
+                    onRightChannelChanged(it)
+                },
+                colors = CheckboxDefaults.colors().copy(
+                    checkedCheckmarkColor = AppRes.colors.background,
+                    checkedBoxColor = AppRes.colors.secondary,
+                    checkedBorderColor = AppRes.colors.secondary,
+                    uncheckedBorderColor = AppRes.colors.secondary
+                )
+            )
             Text(
                 text = AppRes.strings.rightChannel,
                 color = AppRes.colors.primary,
@@ -57,5 +80,16 @@ fun ChannelCheckboxes(
                 style = AppRes.type.gilroyMedium
             )
         }
+    }
+}
+
+@Preview
+@Composable
+private fun ChannelCheckboxesPreview() {
+    EqualizerTheme(colorUiType = ColorUiType.DARK) {
+        ChannelCheckboxes(
+            onLeftChannelChanged = {},
+            onRightChannelChanged = {}
+        )
     }
 }

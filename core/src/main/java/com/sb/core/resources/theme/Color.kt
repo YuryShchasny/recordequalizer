@@ -30,7 +30,7 @@ fun darkColorScheme() = AppColors(
     background = BlueDark,
     primary = White,
     secondary = BlueLight.copy(0.7f),
-    trackTintColor = Color.White.copy(0.31f)
+    trackTintColor = Gray
 )
 
 fun lightColorScheme() = AppColors()

@@ -7,5 +7,5 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val appModule = module {
-    singleOf(::CoroutineManagerImpl).bind<CoroutineManager>()
+    singleOf<CoroutineManager>(::CoroutineManagerImpl).bind<CoroutineManager>()
 }
