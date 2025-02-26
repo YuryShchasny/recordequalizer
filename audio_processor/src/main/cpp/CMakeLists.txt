@@ -28,6 +28,8 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         native-lib.cpp
         AudioEngine.cpp
+        Equalizer.cpp
+        BiQuadFilter.cpp
 )
 
 include_directories(include)

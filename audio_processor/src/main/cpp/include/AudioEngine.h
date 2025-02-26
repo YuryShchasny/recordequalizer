@@ -6,10 +6,15 @@
 #include <string>
 #include <thread>
 #include "FullDuplexPass.h"
+#include "Equalizer.h"
 
 class AudioEngine : public oboe::AudioStreamCallback {
 public:
     AudioEngine();
+
+    void setEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains);
+
+    void setGain(int frequency, float gain);
 
     void setRecordingDeviceId(int32_t deviceId);
 
@@ -40,6 +45,10 @@ private:
     int32_t mSampleRate = oboe::kUnspecified;
     const int32_t mChannelCount = oboe::ChannelCount::Stereo;
 
+    int mFrequenciesSize = 0;
+    int *mFrequencies = {};
+    float *mFrequencyGains = {};
+
     std::unique_ptr<FullDuplexPass> mDuplexStream;
     std::shared_ptr<oboe::AudioStream> mRecordingStream;
     std::shared_ptr<oboe::AudioStream> mPlayStream;
@@ -48,7 +57,7 @@ private:
 
     void closeStreams();
 
-    void closeStream(std::shared_ptr<oboe::AudioStream> &stream);
+    static void closeStream(std::shared_ptr<oboe::AudioStream> &stream);
 
     oboe::AudioStreamBuilder *setupCommonStreamParameters(
             oboe::AudioStreamBuilder *builder);
@@ -59,7 +68,7 @@ private:
     oboe::AudioStreamBuilder *setupPlaybackStreamParameters(
             oboe::AudioStreamBuilder *builder);
 
-    void warnIfNotLowLatency(std::shared_ptr<oboe::AudioStream> &stream);
+    static void warnIfNotLowLatency(std::shared_ptr<oboe::AudioStream> &stream);
 };
 
 #endif  // OBOE_AUDIOENGING_H

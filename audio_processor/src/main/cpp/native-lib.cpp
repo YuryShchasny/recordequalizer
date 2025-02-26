@@ -75,17 +75,47 @@ Java_com_sb_audio_1processor_NativeAudioEngine_setDefaultStreamValues(JNIEnv *en
     oboe::DefaultStreamValues::SampleRate = (int32_t) sampleRate;
     oboe::DefaultStreamValues::FramesPerBurst = (int32_t) framesPerBurst;
 }
-}
 
-extern "C"
 JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_nativeChangeLeftChannel(JNIEnv *env, jobject thiz,
                                                                        jboolean enabled) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling isPlaying method");
+        return;
+    }
     engine->changeLeftChannel(enabled);
 }
-extern "C"
 JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_nativeChangeRightChannel(JNIEnv *env, jobject thiz,
                                                                         jboolean enabled) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling isPlaying method");
+        return;
+    }
     engine->changeRightChannel(enabled);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv *env, jobject thiz,
+                                                                         jint frequenciesSize,
+                                                                         jintArray frequencies,
+                                                                         jfloatArray gains) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling isPlaying method");
+        return;
+    }
+    jint *nativeFrequencies = env->GetIntArrayElements(frequencies, NULL);
+    jfloat *nativeGains = env->GetFloatArrayElements(gains, NULL);
+    engine->setEqualizer(frequenciesSize, nativeFrequencies, nativeGains);
+}
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetFrequencyGain(JNIEnv *env, jobject thiz,
+                                                                jint frequency, jfloat gain) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling isPlaying method");
+        return;
+    }
+    engine->setGain(frequency, gain);
 }

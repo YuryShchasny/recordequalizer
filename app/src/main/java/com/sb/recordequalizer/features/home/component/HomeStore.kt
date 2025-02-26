@@ -10,6 +10,7 @@ import com.arkivanov.essenty.lifecycle.doOnStop
 import com.sb.audio_processor.AudioEngine
 import com.sb.audio_processor.NativeAudioEngine
 import com.sb.core.base.BaseStore
+import com.sb.domain.entity.DefaultFrequencies
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -34,17 +35,23 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         launchIO {
             _uiState.update {
                 it.copy(
+                    frequencies = DefaultFrequencies.get(),
                     inputDevices = inputDevices.toList(),
                     outputDevices = outputDevices.toList()
                 )
             }
         }
         lifecycle.doOnStop {
-            audioEngine.onStop()
-            _uiState.update { it.copy(playing = false) }
+            launchIO {
+                audioEngine.onStop()
+                _uiState.update { it.copy(playing = false) }
+            }
         }
         lifecycle.doOnStart {
-            audioEngine.onStart()
+            launchIO {
+                audioEngine.onStart()
+                audioEngine.initEqualizer(DefaultFrequencies.get())
+            }
         }
     }
 
@@ -60,8 +67,9 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
 
             Intent.PlayPause -> {
                 launchIO {
-                    if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
-                    _uiState.update { it.copy(playing = !it.playing) }
+                    val result =
+                        if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
+                    _uiState.update { it.copy(playing = result) }
                 }
             }
 
@@ -92,10 +100,26 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                     audioEngine.changeRightChannel(intent.enabled)
                 }
             }
+
+            is Intent.FrequencyGainChanged -> {
+                launchIO {
+                    _uiState.update { state ->
+                        state.copy(
+                            frequencies = state.frequencies.map { frequency ->
+                                if (frequency.first == intent.frequency) {
+                                    frequency.copy(second = intent.value)
+                                } else frequency
+                            }
+                        )
+                    }
+                    audioEngine.setFrequencyGain(intent.frequency, intent.value)
+                }
+            }
         }
     }
 
     data class State(
+        val frequencies: List<Pair<Int, Float>> = listOf(),
         val loading: Boolean = true,
         val hasPermissions: Boolean = false,
         val playing: Boolean = false,
@@ -111,5 +135,6 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         data class SelectOutputDevice(val deviceInfo: AudioDeviceInfo) : Intent
         data class ChangeLeftChannel(val enabled: Boolean) : Intent
         data class ChangeRightChannel(val enabled: Boolean) : Intent
+        data class FrequencyGainChanged(val frequency: Int, val value: Float) : Intent
     }
 }
