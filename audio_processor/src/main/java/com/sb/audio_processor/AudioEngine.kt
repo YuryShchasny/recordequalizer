@@ -11,5 +11,6 @@ interface AudioEngine {
     suspend fun changeLeftChannel(enabled: Boolean)
     suspend fun changeRightChannel(enabled: Boolean)
     suspend fun setFrequencyGain(frequency: Int, value: Float)
-    suspend fun initEqualizer(frequencies: List<Pair<Int, Float>>)
+    suspend fun setAmplitudeGain(value: Float)
+    suspend fun initEqualizer(amplitude: Float, frequencies: List<Pair<Int, Float>>)
 }

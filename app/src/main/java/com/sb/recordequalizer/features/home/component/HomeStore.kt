@@ -35,6 +35,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         launchIO {
             _uiState.update {
                 it.copy(
+                    amplitude = 0f,
                     frequencies = DefaultFrequencies.get(),
                     inputDevices = inputDevices.toList(),
                     outputDevices = outputDevices.toList()
@@ -50,7 +51,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         lifecycle.doOnStart {
             launchIO {
                 audioEngine.onStart()
-                audioEngine.initEqualizer(DefaultFrequencies.get())
+                audioEngine.initEqualizer(0f, DefaultFrequencies.get())
             }
         }
     }
@@ -115,11 +116,23 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                     audioEngine.setFrequencyGain(intent.frequency, intent.value)
                 }
             }
+
+            is Intent.AmplitudeGainChanged -> {
+                launchIO {
+                    _uiState.update { state ->
+                        state.copy(
+                            amplitude = intent.value
+                        )
+                    }
+                    audioEngine.setAmplitudeGain(intent.value)
+                }
+            }
         }
     }
 
     data class State(
         val frequencies: List<Pair<Int, Float>> = listOf(),
+        val amplitude: Float = 0f,
         val loading: Boolean = true,
         val hasPermissions: Boolean = false,
         val playing: Boolean = false,
@@ -136,5 +149,6 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         data class ChangeLeftChannel(val enabled: Boolean) : Intent
         data class ChangeRightChannel(val enabled: Boolean) : Intent
         data class FrequencyGainChanged(val frequency: Int, val value: Float) : Intent
+        data class AmplitudeGainChanged(val value: Float) : Intent
     }
 }
