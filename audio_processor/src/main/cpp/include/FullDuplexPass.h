@@ -3,15 +3,18 @@
 
 #include <memory>
 #include "Equalizer.h"
+#include "Log.h"
 
 class FullDuplexPass : public oboe::FullDuplexStream {
 public:
 
     bool leftChannelEnabled = true;
     bool rightChannelEnabled = true;
+    float amplitude = 0.0f;
     std::unique_ptr<Equalizer> equalizer;
 
-    void initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
+    void
+    initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
         equalizer = std::make_unique<Equalizer>();
         equalizer->initialize(frequenciesSize, frequencies, frequencyGains, sampleRate);
     }
@@ -57,10 +60,22 @@ public:
 
 private:
     int16_t *processFrame(int16_t frame[2]) const {
-        if(equalizer) {
+        if (equalizer) {
             equalizer->process(frame);
         }
+        applyGain(frame);
         return frame;
+    }
+
+    void applyGain(int16_t *frame) const {
+        float A = pow(10, amplitude / 20.0f);
+        for (int i = 0; i < 2; ++i) {
+            int32_t sample = static_cast<int32_t>(frame[i]);
+            sample = sample * A;
+            if (sample > SHRT_MAX) sample = SHRT_MAX;
+            if (sample < SHRT_MIN) sample = SHRT_MIN;
+            frame[i] = static_cast<int16_t>(sample);
+        }
     }
 };
 

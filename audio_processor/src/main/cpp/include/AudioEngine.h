@@ -16,6 +16,8 @@ public:
 
     void setGain(int frequency, float gain);
 
+    void setAmplitude(float gain);
+
     void setRecordingDeviceId(int32_t deviceId);
 
     void setPlaybackDeviceId(int32_t deviceId);
@@ -48,6 +50,7 @@ private:
     int mFrequenciesSize = 0;
     int *mFrequencies = {};
     float *mFrequencyGains = {};
+    float mAmplitude = 0;
 
     std::unique_ptr<FullDuplexPass> mDuplexStream;
     std::shared_ptr<oboe::AudioStream> mRecordingStream;

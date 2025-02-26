@@ -46,11 +46,12 @@ fun Equalizer(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 frequencies.forEach { frequency ->
-                    FrequencySlider(
+                    CustomSlider(
                         modifier = Modifier.weight(1f),
                         value = frequency.second,
                         valueRange = valueRange,
                         onValueChanged = { newValue -> onGainChanged(frequency.first, newValue) },
+                        labelOffset = (-16).dp
                     )
                 }
             }

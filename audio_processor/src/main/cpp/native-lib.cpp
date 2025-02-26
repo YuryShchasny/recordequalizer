@@ -97,6 +97,7 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeChangeRightChannel(JNIEnv *
 
 JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv *env, jobject thiz,
+                                                                         jfloat amplitude,
                                                                          jint frequenciesSize,
                                                                          jintArray frequencies,
                                                                          jfloatArray gains) {
@@ -107,15 +108,26 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
     jint *nativeFrequencies = env->GetIntArrayElements(frequencies, NULL);
     jfloat *nativeGains = env->GetFloatArrayElements(gains, NULL);
     engine->setEqualizer(frequenciesSize, nativeFrequencies, nativeGains);
+    engine->setAmplitude(amplitude);
 }
-}
-extern "C"
+
 JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetFrequencyGain(JNIEnv *env, jobject thiz,
-                                                                jint frequency, jfloat gain) {
+                                                                      jint frequency, jfloat gain) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling isPlaying method");
         return;
     }
     engine->setGain(frequency, gain);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetAmplitudeGain(JNIEnv *env, jobject thiz,
+                                                                      jfloat gain) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling isPlaying method");
+        return;
+    }
+    engine->setAmplitude(gain);
+}
 }
