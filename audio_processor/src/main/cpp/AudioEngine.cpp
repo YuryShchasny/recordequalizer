@@ -179,7 +179,9 @@ void AudioEngine::setGain(int frequency, float gain) {
     for (int i = 0; i < mFrequenciesSize; ++i) {
         if (mFrequencies[i] == frequency) {
             mFrequencyGains[i] = gain;
-            mDuplexStream->equalizer->updateGain(i, mFrequencyGains[i]);
+            if(mDuplexStream) {
+                mDuplexStream->equalizer->updateGain(i, mFrequencyGains[i]);
+            }
         }
     }
 }
