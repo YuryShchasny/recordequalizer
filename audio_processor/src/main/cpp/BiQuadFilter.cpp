@@ -2,21 +2,30 @@
 
 BiQuadFilter::BiQuadFilter() : x1(0), x2(0), y1(0), y2(0) {}
 
-void BiQuadFilter::setLowPass(int frequency, float Q, float gainDB, int sampleRate) {
+void BiQuadFilter::setPeakingEQ(int frequency, float Q, float gainDB, int sampleRate) {
     auto A = (float) pow(10, gainDB / 40.0f); // Преобразование дБ в коэффициент усиления
     auto omega = (float) (2.0f * M_PI * frequency / sampleRate);
     float alpha = sin(omega) / (2.0f * Q);
-    float a0 =  1 + alpha / A;
 
-    b0 =  1 + alpha * A;
-    b1 = -2 * cos(omega);
-    b2 =  1 - alpha * A;
-    a1 = -2 * cos(omega);
-    a2 =  1 - alpha / A;
+    float b0 =  1 + alpha * A;
+    float b1 = -2 * cos(omega);
+    float b2 =  1 - alpha * A;
+    float a0 =  1 + alpha / A;
+    float a1 = -2 * cos(omega);
+    float a2 =  1 - alpha / A;
 
     // Нормализация коэффициентов
-    b0 /= a0; b1 /= a0; b2 /= a0;
-    a1 /= a0; a2 /= a0;
+    b0 /= a0;
+    b1 /= a0;
+    b2 /= a0;
+    a1 /= a0;
+    a2 /= a0;
+
+    this->b0 = b0;
+    this->b1 = b1;
+    this->b2 = b2;
+    this->a1 = a1;
+    this->a2 = a2;
 }
 
 float BiQuadFilter::process(float inSample) {

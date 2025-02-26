@@ -11,7 +11,7 @@ private:
 public:
     BiQuadFilter();
 
-    void setLowPass(int frequency, float Q, float gainDB, int sampleRate);
+    void setPeakingEQ(int frequency, float Q, float gainDB, int sampleRate);
 
     float process(float inSample);
 };

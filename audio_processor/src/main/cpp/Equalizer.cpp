@@ -13,7 +13,7 @@ void Equalizer::initialize(int frequenciesSize, const int *frequencies, const fl
         mFrequencies[i] = frequencies[i];
         mFrequencyGains[i] = frequencyGains[i];
         mEqFilters[i] = *new BiQuadFilter();
-        mEqFilters[i].setLowPass(mFrequencies[i], 1.0f, mFrequencyGains[i], sampleRate);
+        mEqFilters[i].setPeakingEQ(mFrequencies[i], 1.0f, mFrequencyGains[i], sampleRate);
     }
 
 }
@@ -31,5 +31,5 @@ void Equalizer::process(int16_t *frame) {
 
 void Equalizer::updateGain(int index, float gain) {
     mFrequencyGains[index] = gain;
-    mEqFilters[index].setLowPass(mFrequencies[index], 1.0f, mFrequencyGains[index], mSampleRate);
+    mEqFilters[index].setPeakingEQ(mFrequencies[index], 1.0f, mFrequencyGains[index], mSampleRate);
 }
