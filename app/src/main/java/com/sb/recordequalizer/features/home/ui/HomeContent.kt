@@ -26,6 +26,7 @@ import com.sb.recordequalizer.features.home.component.HomeComponent
 import com.sb.recordequalizer.features.home.component.HomeStore
 import com.sb.recordequalizer.features.home.ui.composable.AudioDeviceDropDownMenu
 import com.sb.recordequalizer.features.home.ui.composable.ChannelCheckboxes
+import com.sb.recordequalizer.features.home.ui.composable.Equalizer
 import com.sb.recordequalizer.features.home.ui.composable.RequestPermissionContent
 
 @Composable
@@ -51,6 +52,7 @@ fun HomeContent(
         if (state.hasPermissions) {
             HomeScreenContent(
                 modifier = modifier.fillMaxSize(),
+                frequencies = state.frequencies,
                 isPlaying = state.playing,
                 onPlayClick = { component.homeStore.dispatchIntent(HomeStore.Intent.PlayPause) },
                 inputDevices = state.inputDevices,
@@ -83,6 +85,13 @@ fun HomeContent(
                         )
                     )
                 },
+                onFrequencyGainChanged = { frequency, value ->
+                    component.homeStore.dispatchIntent(
+                        HomeStore.Intent.FrequencyGainChanged(
+                            frequency, value
+                        )
+                    )
+                }
             )
         } else {
             RequestPermissionContent(permissionRequestLauncher = permissionRequestLauncher)
@@ -93,6 +102,7 @@ fun HomeContent(
 @Composable
 private fun HomeScreenContent(
     modifier: Modifier = Modifier,
+    frequencies: List<Pair<Int, Float>>,
     isPlaying: Boolean,
     inputDevices: List<AudioDeviceInfo>,
     outputDevices: List<AudioDeviceInfo>,
@@ -100,41 +110,57 @@ private fun HomeScreenContent(
     onSelectOutputDevice: (AudioDeviceInfo) -> Unit,
     onLeftChannelChanged: (Boolean) -> Unit,
     onRightChannelChanged: (Boolean) -> Unit,
-    onPlayClick: () -> Unit
+    onPlayClick: () -> Unit,
+    onFrequencyGainChanged: (Int, Float) -> Unit,
 ) {
-    Box(modifier = modifier.padding(horizontal = 16.dp, vertical = 32.dp)) {
+    Box(modifier = modifier.padding(vertical = 32.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            AudioDeviceDropDownMenu(
-                modifier = Modifier.fillMaxWidth(),
-                list = inputDevices,
-                label = AppRes.strings.recordDevice,
-                onSelected = onSelectInputDevice
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                AudioDeviceDropDownMenu(
+                    modifier = Modifier.fillMaxWidth(),
+                    list = inputDevices,
+                    label = AppRes.strings.recordDevice,
+                    onSelected = onSelectInputDevice
+                )
+                AudioDeviceDropDownMenu(
+                    modifier = Modifier.fillMaxWidth(),
+                    list = outputDevices,
+                    label = AppRes.strings.playbackDevice,
+                    onSelected = onSelectOutputDevice
+                )
+            }
+            Equalizer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                frequencies = frequencies,
+                valueRange = -10f..10f,
+                onGainChanged = onFrequencyGainChanged
             )
-            AudioDeviceDropDownMenu(
-                modifier = Modifier.fillMaxWidth(),
-                list = outputDevices,
-                label = AppRes.strings.playbackDevice,
-                onSelected = onSelectOutputDevice
+            Icon(
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .size(32.dp)
+                    .clickable { onPlayClick() },
+                imageVector = if (isPlaying) AppRes.icons.pause else AppRes.icons.play,
+                contentDescription = null,
+                tint = AppRes.colors.primary
             )
             if (isPlaying) {
                 ChannelCheckboxes(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     onLeftChannelChanged = onLeftChannelChanged,
                     onRightChannelChanged = onRightChannelChanged
                 )
             }
         }
-        Icon(
-            modifier = Modifier
-                .align(Alignment.Center)
-                .size(32.dp)
-                .clickable { onPlayClick() },
-            imageVector = if (isPlaying) AppRes.icons.pause else AppRes.icons.play,
-            contentDescription = null,
-            tint = AppRes.colors.primary
-        )
     }
 }

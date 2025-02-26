@@ -20,9 +20,9 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     private external fun setRecordingDeviceId(deviceId: Int)
     private external fun setPlaybackDeviceId(deviceId: Int)
     private external fun setDefaultStreamValues(sampleRate: Int, framesPerBurst: Int)
-
+    private external fun nativeInitializeEqualizer(frequenciesSize: Int, frequencies: IntArray, gains: FloatArray)
+    private external fun nativeSetFrequencyGain(frequency: Int, gain: Float)
     private external fun nativeChangeLeftChannel(enabled: Boolean)
-
     private external fun nativeChangeRightChannel(enabled: Boolean)
 
     init {
@@ -88,6 +88,22 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     override suspend fun changeRightChannel(enabled: Boolean) = withContext(Dispatchers.Default) {
         mutex.withLock {
             nativeChangeRightChannel(enabled)
+        }
+    }
+
+    override suspend fun setFrequencyGain(frequency: Int, value: Float) {
+        mutex.withLock {
+            nativeSetFrequencyGain(frequency, value)
+        }
+    }
+
+    override suspend fun initEqualizer(frequencies: List<Pair<Int, Float>>) {
+        mutex.withLock {
+            nativeInitializeEqualizer(
+                frequenciesSize = frequencies.size,
+                frequencies = frequencies.map { it.first }.toIntArray(),
+                gains = frequencies.map { it.second }.toFloatArray(),
+            )
         }
     }
 

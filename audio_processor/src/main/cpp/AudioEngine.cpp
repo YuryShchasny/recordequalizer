@@ -4,7 +4,7 @@
 
 using namespace oboe;
 
-AudioEngine::AudioEngine() {}
+AudioEngine::AudioEngine() = default;
 
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     mRecordingDeviceId = deviceId;
@@ -72,6 +72,9 @@ Result AudioEngine::openStreams() {
     mDuplexStream = std::make_unique<FullDuplexPass>();
     mDuplexStream->setSharedInputStream(mRecordingStream);
     mDuplexStream->setSharedOutputStream(mPlayStream);
+    if (mFrequenciesSize > 0) {
+        mDuplexStream->initEqualizer(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
+    }
     mDuplexStream->start();
     return result;
 }
@@ -127,7 +130,8 @@ void AudioEngine::warnIfNotLowLatency(std::shared_ptr<oboe::AudioStream> &stream
     if (stream->getPerformanceMode() != oboe::PerformanceMode::LowLatency) {
         LOGD(
                 "Stream is NOT low latency. PerformanceMode: %d \n"
-                "Check your requested format, sample rate and channel count", stream->getPerformanceMode());
+                "Check your requested format, sample rate and channel count",
+                stream->getPerformanceMode());
     }
 }
 
@@ -163,4 +167,19 @@ void AudioEngine::changeLeftChannel(bool enabled) {
 
 void AudioEngine::changeRightChannel(bool enabled) {
     mDuplexStream->rightChannelEnabled = enabled;
+}
+
+void AudioEngine::setEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains) {
+    mFrequenciesSize = frequenciesSize;
+    mFrequencies = frequencies;
+    mFrequencyGains = frequencyGains;
+}
+
+void AudioEngine::setGain(int frequency, float gain) {
+    for (int i = 0; i < mFrequenciesSize; ++i) {
+        if (mFrequencies[i] == frequency) {
+            mFrequencyGains[i] = gain;
+            mDuplexStream->equalizer->updateGain(i, mFrequencyGains[i]);
+        }
+    }
 }
