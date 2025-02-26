@@ -12,6 +12,7 @@ data class AppStrings(
     val recordDevice: String,
     val playbackDevice: String,
     val default: String,
+    val gainAmplitude: String
 )
 
 internal val russianAppStrings = AppStrings(
@@ -22,6 +23,7 @@ internal val russianAppStrings = AppStrings(
     recordDevice = "Записывающее устройство",
     playbackDevice = "Устройство воспроизведения",
     default = "По умолчанию",
+    gainAmplitude = "Усиление амплитуды",
 )
 
 internal val englishAppStrings = AppStrings(
@@ -32,6 +34,7 @@ internal val englishAppStrings = AppStrings(
     recordDevice = "Record device",
     playbackDevice = "Playback device",
     default = "Default",
+    gainAmplitude = "Gain amplitude"
 )
 
 val LocalAppStrings = staticCompositionLocalOf<AppStrings> {

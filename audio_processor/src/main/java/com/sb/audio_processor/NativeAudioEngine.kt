@@ -20,7 +20,13 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     private external fun setRecordingDeviceId(deviceId: Int)
     private external fun setPlaybackDeviceId(deviceId: Int)
     private external fun setDefaultStreamValues(sampleRate: Int, framesPerBurst: Int)
-    private external fun nativeInitializeEqualizer(frequenciesSize: Int, frequencies: IntArray, gains: FloatArray)
+    private external fun nativeInitializeEqualizer(
+        amplitude: Float,
+        frequenciesSize: Int,
+        frequencies: IntArray,
+        gains: FloatArray
+    )
+    private external fun nativeSetAmplitudeGain(gain: Float)
     private external fun nativeSetFrequencyGain(frequency: Int, gain: Float)
     private external fun nativeChangeLeftChannel(enabled: Boolean)
     private external fun nativeChangeRightChannel(enabled: Boolean)
@@ -43,7 +49,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
 
     override suspend fun playAudio(): Boolean = withContext(Dispatchers.Default) {
         mutex.withLock {
-            if(!isPlaying()) {
+            if (!isPlaying()) {
                 val job = launch { play() }
                 job.join()
                 return@withContext isPlaying()
@@ -54,7 +60,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
 
     override suspend fun pauseAudio() = withContext(Dispatchers.Default) {
         mutex.withLock {
-            if(isPlaying()) {
+            if (isPlaying()) {
                 val job = launch { stop() }
                 job.join()
                 return@withContext isPlaying()
@@ -91,21 +97,30 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         }
     }
 
-    override suspend fun setFrequencyGain(frequency: Int, value: Float) {
+    override suspend fun setFrequencyGain(frequency: Int, value: Float) =
+        withContext(Dispatchers.Default) {
+            mutex.withLock {
+                nativeSetFrequencyGain(frequency, value)
+            }
+        }
+
+    override suspend fun setAmplitudeGain(value: Float) = withContext(Dispatchers.Default) {
         mutex.withLock {
-            nativeSetFrequencyGain(frequency, value)
+            nativeSetAmplitudeGain(value)
         }
     }
 
-    override suspend fun initEqualizer(frequencies: List<Pair<Int, Float>>) {
-        mutex.withLock {
-            nativeInitializeEqualizer(
-                frequenciesSize = frequencies.size,
-                frequencies = frequencies.map { it.first }.toIntArray(),
-                gains = frequencies.map { it.second }.toFloatArray(),
-            )
+    override suspend fun initEqualizer(amplitude: Float, frequencies: List<Pair<Int, Float>>) =
+        withContext(Dispatchers.Default) {
+            mutex.withLock {
+                nativeInitializeEqualizer(
+                    amplitude = amplitude,
+                    frequenciesSize = frequencies.size,
+                    frequencies = frequencies.map { it.first }.toIntArray(),
+                    gains = frequencies.map { it.second }.toFloatArray(),
+                )
+            }
         }
-    }
 
     private fun setDefaultStreamValues(context: Context) {
         val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

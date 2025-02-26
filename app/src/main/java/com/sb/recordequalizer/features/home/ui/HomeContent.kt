@@ -27,6 +27,7 @@ import com.sb.recordequalizer.features.home.component.HomeStore
 import com.sb.recordequalizer.features.home.ui.composable.AudioDeviceDropDownMenu
 import com.sb.recordequalizer.features.home.ui.composable.ChannelCheckboxes
 import com.sb.recordequalizer.features.home.ui.composable.Equalizer
+import com.sb.recordequalizer.features.home.ui.composable.GainAmplitude
 import com.sb.recordequalizer.features.home.ui.composable.RequestPermissionContent
 
 @Composable
@@ -53,6 +54,7 @@ fun HomeContent(
             HomeScreenContent(
                 modifier = modifier.fillMaxSize(),
                 frequencies = state.frequencies,
+                amplitude = state.amplitude,
                 isPlaying = state.playing,
                 onPlayClick = { component.homeStore.dispatchIntent(HomeStore.Intent.PlayPause) },
                 inputDevices = state.inputDevices,
@@ -91,6 +93,11 @@ fun HomeContent(
                             frequency, value
                         )
                     )
+                },
+                onAmplitudeGainChanged = {
+                    component.homeStore.dispatchIntent(
+                        HomeStore.Intent.AmplitudeGainChanged(it)
+                    )
                 }
             )
         } else {
@@ -103,6 +110,7 @@ fun HomeContent(
 private fun HomeScreenContent(
     modifier: Modifier = Modifier,
     frequencies: List<Pair<Int, Float>>,
+    amplitude: Float,
     isPlaying: Boolean,
     inputDevices: List<AudioDeviceInfo>,
     outputDevices: List<AudioDeviceInfo>,
@@ -112,6 +120,7 @@ private fun HomeScreenContent(
     onRightChannelChanged: (Boolean) -> Unit,
     onPlayClick: () -> Unit,
     onFrequencyGainChanged: (Int, Float) -> Unit,
+    onAmplitudeGainChanged: (Float) -> Unit,
 ) {
     Box(modifier = modifier.padding(vertical = 32.dp)) {
         Column(
@@ -142,6 +151,11 @@ private fun HomeScreenContent(
                 frequencies = frequencies,
                 valueRange = -10f..10f,
                 onGainChanged = onFrequencyGainChanged
+            )
+            GainAmplitude(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                value = amplitude,
+                onValueChanged = onAmplitudeGainChanged
             )
             Icon(
                 modifier = Modifier

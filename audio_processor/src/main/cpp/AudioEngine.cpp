@@ -75,6 +75,7 @@ Result AudioEngine::openStreams() {
     if (mFrequenciesSize > 0) {
         mDuplexStream->initEqualizer(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
     }
+    mDuplexStream->amplitude = mAmplitude;
     mDuplexStream->start();
     return result;
 }
@@ -183,5 +184,12 @@ void AudioEngine::setGain(int frequency, float gain) {
                 mDuplexStream->equalizer->updateGain(i, mFrequencyGains[i]);
             }
         }
+    }
+}
+
+void AudioEngine::setAmplitude(float gain) {
+    mAmplitude = gain;
+    if(mDuplexStream) {
+        mDuplexStream->amplitude = gain;
     }
 }
