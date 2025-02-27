@@ -6,8 +6,8 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.instancekeeper.getOrCreate
-import com.sb.recordequalizer.features.home.component.DefaultHomeComponent
-import com.sb.recordequalizer.features.home.component.HomeComponent
+import com.sb.features.home.presentation.component.DefaultHomeComponent
+import com.sb.features.home.presentation.component.HomeComponent
 import com.sb.recordequalizer.root.component.RootComponent.Child
 import kotlinx.serialization.Serializable
 

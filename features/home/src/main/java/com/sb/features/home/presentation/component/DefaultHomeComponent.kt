@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.component
+package com.sb.features.home.presentation.component
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.essenty.instancekeeper.getOrCreate

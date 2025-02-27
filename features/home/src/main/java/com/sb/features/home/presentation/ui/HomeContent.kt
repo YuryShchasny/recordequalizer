@@ -1,8 +1,5 @@
-package com.sb.recordequalizer.features.home.ui
+package com.sb.features.home.presentation.ui
 
-import android.Manifest
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -21,44 +17,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
-import com.sb.recordequalizer.features.home.component.HomeComponent
-import com.sb.recordequalizer.features.home.component.HomeStore
-import com.sb.recordequalizer.features.home.ui.composable.AudioDeviceDropDownMenu
-import com.sb.recordequalizer.features.home.ui.composable.ChannelCheckboxes
-import com.sb.recordequalizer.features.home.ui.composable.Equalizer
-import com.sb.recordequalizer.features.home.ui.composable.GainAmplitude
-import com.sb.recordequalizer.features.home.ui.composable.RequestPermissionContent
+import com.sb.features.home.presentation.component.HomeComponent
+import com.sb.features.home.presentation.component.HomeStore
+import com.sb.features.home.presentation.ui.composable.AudioDeviceDropDownMenu
+import com.sb.features.home.presentation.ui.composable.ChannelCheckboxes
+import com.sb.features.home.presentation.ui.composable.Equalizer
+import com.sb.features.home.presentation.ui.composable.GainAmplitude
 
 @Composable
 fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier,
 ) {
-    val permissionRequestLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) {
-                component.homeStore.dispatchIntent(HomeStore.Intent.PermissionsGranted)
-            } else {
-                component.homeStore.dispatchIntent(HomeStore.Intent.PermissionsDenied)
-            }
-        }
+
     val state by component.homeStore.state.collectAsState()
-    if (state.loading) {
-        Loading()
-        LaunchedEffect(permissionRequestLauncher) {
-            permissionRequestLauncher.launch(Manifest.permission.RECORD_AUDIO)
-        }
-    } else {
-        if (state.hasPermissions) {
-            HomeScreenContent(
-                modifier = modifier.fillMaxSize(),
-                state = state,
-                dispatchIntent = component.homeStore::dispatchIntent
-            )
-        } else {
-            RequestPermissionContent(permissionRequestLauncher = permissionRequestLauncher)
-        }
-    }
+    state?.let {
+        HomeScreenContent(
+            modifier = modifier.fillMaxSize(),
+            state = it,
+            dispatchIntent = component.homeStore::dispatchIntent
+        )
+    } ?: Loading()
 }
 
 @Composable

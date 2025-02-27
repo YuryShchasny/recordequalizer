@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.ui.composable
+package com.sb.features.home.presentation.ui.composable
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.ExperimentalMaterial3Api
