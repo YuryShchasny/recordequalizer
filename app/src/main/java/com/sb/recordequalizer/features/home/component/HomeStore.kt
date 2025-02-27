@@ -3,6 +3,7 @@ package com.sb.recordequalizer.features.home.component
 import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import androidx.compose.runtime.Stable
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleOwner
 import com.arkivanov.essenty.lifecycle.doOnStart
@@ -140,6 +141,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         val outputDevices: List<AudioDeviceInfo> = emptyList(),
     )
 
+    @Stable
     sealed interface Intent {
         data object PermissionsGranted : Intent
         data object PermissionsDenied : Intent

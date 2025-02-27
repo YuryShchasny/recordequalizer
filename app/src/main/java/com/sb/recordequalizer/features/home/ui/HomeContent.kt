@@ -1,7 +1,6 @@
 package com.sb.recordequalizer.features.home.ui
 
 import android.Manifest
-import android.media.AudioDeviceInfo
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
@@ -53,52 +52,8 @@ fun HomeContent(
         if (state.hasPermissions) {
             HomeScreenContent(
                 modifier = modifier.fillMaxSize(),
-                frequencies = state.frequencies,
-                amplitude = state.amplitude,
-                isPlaying = state.playing,
-                onPlayClick = { component.homeStore.dispatchIntent(HomeStore.Intent.PlayPause) },
-                inputDevices = state.inputDevices,
-                outputDevices = state.outputDevices,
-                onSelectInputDevice = {
-                    component.homeStore.dispatchIntent(
-                        HomeStore.Intent.SelectInputDevice(
-                            it
-                        )
-                    )
-                },
-                onSelectOutputDevice = {
-                    component.homeStore.dispatchIntent(
-                        HomeStore.Intent.SelectOutputDevice(
-                            it
-                        )
-                    )
-                },
-                onLeftChannelChanged = {
-                    component.homeStore.dispatchIntent(
-                        HomeStore.Intent.ChangeLeftChannel(
-                            it
-                        )
-                    )
-                },
-                onRightChannelChanged = {
-                    component.homeStore.dispatchIntent(
-                        HomeStore.Intent.ChangeRightChannel(
-                            it
-                        )
-                    )
-                },
-                onFrequencyGainChanged = { frequency, value ->
-                    component.homeStore.dispatchIntent(
-                        HomeStore.Intent.FrequencyGainChanged(
-                            frequency, value
-                        )
-                    )
-                },
-                onAmplitudeGainChanged = {
-                    component.homeStore.dispatchIntent(
-                        HomeStore.Intent.AmplitudeGainChanged(it)
-                    )
-                }
+                state = state,
+                dispatchIntent = component.homeStore::dispatchIntent
             )
         } else {
             RequestPermissionContent(permissionRequestLauncher = permissionRequestLauncher)
@@ -108,19 +63,9 @@ fun HomeContent(
 
 @Composable
 private fun HomeScreenContent(
+    state: HomeStore.State,
+    dispatchIntent: (HomeStore.Intent) -> Unit,
     modifier: Modifier = Modifier,
-    frequencies: List<Pair<Int, Float>>,
-    amplitude: Float,
-    isPlaying: Boolean,
-    inputDevices: List<AudioDeviceInfo>,
-    outputDevices: List<AudioDeviceInfo>,
-    onSelectInputDevice: (AudioDeviceInfo) -> Unit,
-    onSelectOutputDevice: (AudioDeviceInfo) -> Unit,
-    onLeftChannelChanged: (Boolean) -> Unit,
-    onRightChannelChanged: (Boolean) -> Unit,
-    onPlayClick: () -> Unit,
-    onFrequencyGainChanged: (Int, Float) -> Unit,
-    onAmplitudeGainChanged: (Float) -> Unit,
 ) {
     Box(modifier = modifier.padding(vertical = 32.dp)) {
         Column(
@@ -133,46 +78,53 @@ private fun HomeScreenContent(
             ) {
                 AudioDeviceDropDownMenu(
                     modifier = Modifier.fillMaxWidth(),
-                    list = inputDevices,
+                    list = state.inputDevices,
                     label = AppRes.strings.recordDevice,
-                    onSelected = onSelectInputDevice
+                    onSelected = { dispatchIntent(HomeStore.Intent.SelectInputDevice(it)) }
                 )
                 AudioDeviceDropDownMenu(
                     modifier = Modifier.fillMaxWidth(),
-                    list = outputDevices,
+                    list = state.outputDevices,
                     label = AppRes.strings.playbackDevice,
-                    onSelected = onSelectOutputDevice
+                    onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )
             }
             Equalizer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 8.dp),
-                frequencies = frequencies,
+                frequencies = state.frequencies,
                 valueRange = -10f..10f,
-                onGainChanged = onFrequencyGainChanged
+                onGainChanged = { frequency, value ->
+                    dispatchIntent(
+                        HomeStore.Intent.FrequencyGainChanged(
+                            frequency,
+                            value
+                        )
+                    )
+                }
             )
             GainAmplitude(
                 modifier = Modifier.padding(horizontal = 16.dp),
-                value = amplitude,
-                onValueChanged = onAmplitudeGainChanged
+                value = state.amplitude,
+                onValueChanged = { dispatchIntent(HomeStore.Intent.AmplitudeGainChanged(it)) }
             )
             Icon(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .size(32.dp)
-                    .clickable { onPlayClick() },
-                imageVector = if (isPlaying) AppRes.icons.pause else AppRes.icons.play,
+                    .clickable { dispatchIntent(HomeStore.Intent.PlayPause) },
+                imageVector = if (state.playing) AppRes.icons.pause else AppRes.icons.play,
                 contentDescription = null,
                 tint = AppRes.colors.primary
             )
-            if (isPlaying) {
+            if (state.playing) {
                 ChannelCheckboxes(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    onLeftChannelChanged = onLeftChannelChanged,
-                    onRightChannelChanged = onRightChannelChanged
+                    onLeftChannelChanged = { dispatchIntent(HomeStore.Intent.ChangeLeftChannel(it)) },
+                    onRightChannelChanged = { dispatchIntent(HomeStore.Intent.ChangeRightChannel(it)) }
                 )
             }
         }
