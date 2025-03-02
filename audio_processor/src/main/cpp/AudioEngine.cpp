@@ -41,7 +41,9 @@ bool AudioEngine::isPlaying() const {
 }
 
 void AudioEngine::closeStreams() {
-    mDuplexStream->stop();
+    if(mDuplexStream) {
+        mDuplexStream->stop();
+    }
     closeStream(mPlayStream);
     closeStream(mRecordingStream);
     mDuplexStream.reset();

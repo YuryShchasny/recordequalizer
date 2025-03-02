@@ -1,28 +1,28 @@
-package com.sb.features.home.presentation.ui
+package com.sb.home.presentation.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sb.core.composable.ClickableIcon
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
-import com.sb.features.home.presentation.component.HomeComponent
-import com.sb.features.home.presentation.component.HomeStore
-import com.sb.features.home.presentation.ui.composable.AudioDeviceDropDownMenu
-import com.sb.features.home.presentation.ui.composable.ChannelCheckboxes
-import com.sb.features.home.presentation.ui.composable.Equalizer
-import com.sb.features.home.presentation.ui.composable.GainAmplitude
+import com.sb.core.resources.theme.ColorUiType
+import com.sb.core.resources.theme.EqualizerTheme
+import com.sb.home.presentation.component.HomeComponent
+import com.sb.home.presentation.component.HomeStore
+import com.sb.home.presentation.ui.composable.AudioDeviceDropDownMenu
 
 @Composable
 fun HomeContent(
@@ -35,7 +35,9 @@ fun HomeContent(
         HomeScreenContent(
             modifier = modifier.fillMaxSize(),
             state = it,
-            dispatchIntent = component.homeStore::dispatchIntent
+            dispatchIntent = component.homeStore::dispatchIntent,
+            onEqualizerIconClick = component::onEqualizerClick,
+            onChangeThemeClick = component::onChangeThemeClick
         )
     } ?: Loading()
 }
@@ -44,13 +46,36 @@ fun HomeContent(
 private fun HomeScreenContent(
     state: HomeStore.State,
     dispatchIntent: (HomeStore.Intent) -> Unit,
+    onEqualizerIconClick: () -> Unit,
+    onChangeThemeClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.padding(vertical = 32.dp)) {
+    Box(modifier = modifier.padding(vertical = 16.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                ClickableIcon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = if (AppRes.theme == ColorUiType.DARK) AppRes.icons.moon else AppRes.icons.sun,
+                    tint = AppRes.colors.secondary,
+                    rippleRadius = 20.dp,
+                    onClick = onChangeThemeClick
+                )
+                ClickableIcon(
+                    modifier = Modifier.size(24.dp),
+                    imageVector = AppRes.icons.slidersUp,
+                    tint = AppRes.colors.secondary,
+                    rippleRadius = 20.dp,
+                    onClick = onEqualizerIconClick
+                )
+            }
             Column(
                 modifier = Modifier.padding(horizontal = 16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -68,44 +93,28 @@ private fun HomeScreenContent(
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )
             }
-            Equalizer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp),
-                frequencies = state.frequencies,
-                valueRange = -10f..10f,
-                onGainChanged = { frequency, value ->
-                    dispatchIntent(
-                        HomeStore.Intent.FrequencyGainChanged(
-                            frequency,
-                            value
-                        )
-                    )
-                }
-            )
-            GainAmplitude(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                value = state.amplitude,
-                onValueChanged = { dispatchIntent(HomeStore.Intent.AmplitudeGainChanged(it)) }
-            )
-            Icon(
+            ClickableIcon(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .size(32.dp)
-                    .clickable { dispatchIntent(HomeStore.Intent.PlayPause) },
+                    .size(32.dp),
                 imageVector = if (state.playing) AppRes.icons.pause else AppRes.icons.play,
-                contentDescription = null,
-                tint = AppRes.colors.primary
+                tint = AppRes.colors.primary,
+                rippleRadius = 24.dp,
+                onClick = { dispatchIntent(HomeStore.Intent.PlayPause) }
             )
-            if (state.playing) {
-                ChannelCheckboxes(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    onLeftChannelChanged = { dispatchIntent(HomeStore.Intent.ChangeLeftChannel(it)) },
-                    onRightChannelChanged = { dispatchIntent(HomeStore.Intent.ChangeRightChannel(it)) }
-                )
-            }
         }
+    }
+}
+
+@Preview
+@Composable
+private fun HomeScreenPreview() {
+    EqualizerTheme(colorUiType = ColorUiType.DARK) {
+        HomeScreenContent(
+            state = HomeStore.State(),
+            dispatchIntent = {},
+            onEqualizerIconClick = {},
+            onChangeThemeClick = {}
+        )
     }
 }

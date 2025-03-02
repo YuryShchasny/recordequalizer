@@ -1,4 +1,4 @@
-package com.sb.features.home.presentation.ui.composable
+package com.sb.equalizer.presentation.ui.composable
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation

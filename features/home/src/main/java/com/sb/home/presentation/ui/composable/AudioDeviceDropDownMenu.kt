@@ -1,4 +1,4 @@
-package com.sb.features.home.presentation.ui.composable
+package com.sb.home.presentation.ui.composable
 
 import android.media.AudioDeviceInfo
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,12 +40,13 @@ fun AudioDeviceDropDownMenu(
         TextField(
             modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
             value = selected?.let { device ->
-                device.productName.toString() + "\n" + getAudioDeviceTypeString(
+                device.productName.toString() + " " + getAudioDeviceTypeString(
                     device.type
                 )
-            } ?: "Default",
+            } ?: AppRes.strings.default,
             onValueChange = {},
             readOnly = true,
+            singleLine = true,
             label = {
                 Text(
                     text = label,
