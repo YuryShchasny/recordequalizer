@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.component
+package com.sb.features.home.presentation.component
 
 interface HomeComponent {
     val homeStore: HomeStore

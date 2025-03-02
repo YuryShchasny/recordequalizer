@@ -1,8 +1,9 @@
-package com.sb.recordequalizer.features.home.component
+package com.sb.features.home.presentation.component
 
 import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import androidx.compose.runtime.Immutable
 import com.arkivanov.essenty.lifecycle.Lifecycle
 import com.arkivanov.essenty.lifecycle.LifecycleOwner
 import com.arkivanov.essenty.lifecycle.doOnStart
@@ -23,7 +24,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
 
     private val audioEngine: AudioEngine = NativeAudioEngine(context)
 
-    private var _uiState = MutableStateFlow(State())
+    private var _uiState = MutableStateFlow<State?>(null)
     val state = _uiState.asStateFlow()
 
     init {
@@ -34,7 +35,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
             .filter { it.type != AudioDeviceInfo.TYPE_TELEPHONY }
         launchIO {
             _uiState.update {
-                it.copy(
+                State(
                     amplitude = 0f,
                     frequencies = DefaultFrequencies.get(),
                     inputDevices = inputDevices.toList(),
@@ -45,7 +46,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         lifecycle.doOnStop {
             launchIO {
                 audioEngine.onStop()
-                _uiState.update { it.copy(playing = false) }
+                _uiState.update { it?.copy(playing = false) }
             }
         }
         lifecycle.doOnStart {
@@ -58,19 +59,11 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
 
     fun dispatchIntent(intent: Intent) {
         when (intent) {
-            Intent.PermissionsGranted -> {
-                _uiState.update { it.copy(hasPermissions = true, loading = false) }
-            }
-
-            Intent.PermissionsDenied -> {
-                _uiState.update { it.copy(loading = false) }
-            }
-
             Intent.PlayPause -> {
                 launchIO {
                     val result =
                         if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
-                    _uiState.update { it.copy(playing = result) }
+                    _uiState.update { it?.copy(playing = result) }
                 }
             }
 
@@ -105,7 +98,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
             is Intent.FrequencyGainChanged -> {
                 launchIO {
                     _uiState.update { state ->
-                        state.copy(
+                        state?.copy(
                             frequencies = state.frequencies.map { frequency ->
                                 if (frequency.first == intent.frequency) {
                                     frequency.copy(second = intent.value)
@@ -120,7 +113,7 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
             is Intent.AmplitudeGainChanged -> {
                 launchIO {
                     _uiState.update { state ->
-                        state.copy(
+                        state?.copy(
                             amplitude = intent.value
                         )
                     }
@@ -130,19 +123,16 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         }
     }
 
+    @Immutable
     data class State(
         val frequencies: List<Pair<Int, Float>> = listOf(),
         val amplitude: Float = 0f,
-        val loading: Boolean = true,
-        val hasPermissions: Boolean = false,
         val playing: Boolean = false,
         val inputDevices: List<AudioDeviceInfo> = emptyList(),
         val outputDevices: List<AudioDeviceInfo> = emptyList(),
     )
 
     sealed interface Intent {
-        data object PermissionsGranted : Intent
-        data object PermissionsDenied : Intent
         data object PlayPause : Intent
         data class SelectInputDevice(val deviceInfo: AudioDeviceInfo) : Intent
         data class SelectOutputDevice(val deviceInfo: AudioDeviceInfo) : Intent

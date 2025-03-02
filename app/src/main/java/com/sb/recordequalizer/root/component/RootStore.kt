@@ -1,5 +1,6 @@
 package com.sb.recordequalizer.root.component
 
+import androidx.compose.runtime.Immutable
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
@@ -11,12 +12,6 @@ class RootStore : BaseStore() {
 
     private val _state = MutableValue<State>(State.Progress)
     val state: Value<State> = _state
-
-    fun init() {
-        launchIO {
-            _state.update { State.Ready() }
-        }
-    }
 
     fun dispatchIntent(intent: Intent) {
         when (intent) {
@@ -48,19 +43,31 @@ class RootStore : BaseStore() {
                     }
                 }
             }
+
+            Intent.PermissionsGranted -> {
+                _state.update { State.Ready(hasPermissions = true) }
+            }
+
+            Intent.PermissionsDenied -> {
+                _state.update { State.Ready(hasPermissions = false) }
+            }
         }
+    }
+
+    @Immutable
+    sealed interface State {
+        data object Progress : State
+        data class Ready(
+            val hasPermissions: Boolean = false,
+            val language: AppLanguage = AppLanguage.RU,
+            val colorUiType: ColorUiType = ColorUiType.DARK
+        ) : State
     }
 
     sealed interface Intent {
         data object ChangeLanguage : Intent
         data object ChangeTheme : Intent
-    }
-
-    sealed interface State {
-        data object Progress : State
-        data class Ready(
-            val language: AppLanguage = AppLanguage.RU,
-            val colorUiType: ColorUiType = ColorUiType.DARK
-        ) : State
+        data object PermissionsGranted : Intent
+        data object PermissionsDenied : Intent
     }
 }

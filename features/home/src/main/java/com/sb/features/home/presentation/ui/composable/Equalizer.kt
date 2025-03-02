@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.ui.composable
+package com.sb.features.home.presentation.ui.composable
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column

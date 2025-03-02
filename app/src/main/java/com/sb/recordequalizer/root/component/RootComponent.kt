@@ -2,7 +2,7 @@ package com.sb.recordequalizer.root.component
 
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
-import com.sb.recordequalizer.features.home.component.HomeComponent
+import com.sb.features.home.presentation.component.HomeComponent
 
 interface RootComponent {
     val stack: Value<ChildStack<*, Child>>

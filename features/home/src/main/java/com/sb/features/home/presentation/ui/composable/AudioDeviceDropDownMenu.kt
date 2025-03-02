@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.ui.composable
+package com.sb.features.home.presentation.ui.composable
 
 import android.media.AudioDeviceInfo
 import androidx.compose.foundation.shape.RoundedCornerShape

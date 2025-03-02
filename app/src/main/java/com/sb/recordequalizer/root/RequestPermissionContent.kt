@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.ui.composable
+package com.sb.recordequalizer.root
 
 import android.Manifest
 import androidx.activity.compose.ManagedActivityResultLauncher
