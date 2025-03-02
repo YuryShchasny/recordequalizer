@@ -1,4 +1,4 @@
-package com.sb.recordequalizer.features.home.ui.composable
+package com.sb.features.home.presentation.ui.composable
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.Orientation
@@ -6,7 +6,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Label
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
@@ -126,7 +128,10 @@ private fun CustomThumb(
     Label(
         label = {
             PlainTooltip(
-                modifier = Modifier.offset(y = labelOffset),
+                modifier = Modifier
+                    .size(65.dp, 25.dp)
+                    .wrapContentWidth()
+                    .offset(y = labelOffset),
                 containerColor = AppRes.colors.secondary
             ) {
                 Text(
