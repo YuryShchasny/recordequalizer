@@ -3,6 +3,7 @@ package com.sb.recordequalizer.root
 import android.Manifest
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
@@ -13,13 +14,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.extensions.compose.stack.Children
+import com.arkivanov.decompose.extensions.compose.stack.animation.slide
 import com.arkivanov.decompose.extensions.compose.stack.animation.stackAnimation
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sb.core.composable.Launched
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.EqualizerTheme
-import com.sb.features.home.presentation.ui.HomeContent
+import com.sb.equalizer.presentation.ui.EqualizerContent
+import com.sb.home.presentation.ui.HomeContent
 import com.sb.recordequalizer.root.component.RootComponent
 import com.sb.recordequalizer.root.component.RootStore
 
@@ -59,10 +62,13 @@ fun RootContent(
                         Children(
                             stack = component.stack,
                             modifier = Modifier.fillMaxSize(),
-                            animation = stackAnimation()
+                            animation = stackAnimation(
+                                animator = slide(orientation = Orientation.Horizontal)
+                            )
                         ) {
                             when (val instance = it.instance) {
                                 is RootComponent.Child.Home -> HomeContent(component = instance.component)
+                                is RootComponent.Child.Equalizer -> EqualizerContent(component = instance.component)
                             }
                         }
                     } else RequestPermissionContent(permissionRequestLauncher = permissionRequestLauncher)
