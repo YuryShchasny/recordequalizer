@@ -15,6 +15,8 @@ val GrayLight = Color(0xFFCACACA)
 val BlueLight = Color(0xFFA5C0FF)
 val BlueDark = Color(0xFF091227)
 val Blue = Color(0xFF8996B8)
+val Black = Color(0xff050d1c)
+val Error = Color(0xFFFF3333)
 
 @Immutable
 data class AppColors(
@@ -24,13 +26,16 @@ data class AppColors(
     val white: Color = White,
     val gray: Color = Gray,
     val trackTintColor: Color = GrayLight,
+    val backgroundContrast: Color = White,
+    val error: Color = Error,
 )
 
 fun darkColorScheme() = AppColors(
     background = BlueDark,
     primary = White,
     secondary = BlueLight.copy(0.7f),
-    trackTintColor = Gray
+    trackTintColor = Gray,
+    backgroundContrast = Black
 )
 
 fun lightColorScheme() = AppColors()

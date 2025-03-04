@@ -6,10 +6,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -22,11 +18,11 @@ import com.sb.core.resources.theme.EqualizerTheme
 @Composable
 fun ChannelCheckboxes(
     modifier: Modifier = Modifier,
+    rightChannel: Boolean,
+    leftChannel: Boolean,
     onLeftChannelChanged: (Boolean) -> Unit,
     onRightChannelChanged: (Boolean) -> Unit,
 ) {
-    var leftChannelState by remember { mutableStateOf(true) }
-    var rightChannelState by remember { mutableStateOf(true) }
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -37,9 +33,8 @@ fun ChannelCheckboxes(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = leftChannelState,
+                checked = leftChannel,
                 onCheckedChange = {
-                    leftChannelState = it
                     onLeftChannelChanged(it)
                 },
                 colors = CheckboxDefaults.colors().copy(
@@ -62,8 +57,8 @@ fun ChannelCheckboxes(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
-                checked = rightChannelState, onCheckedChange = {
-                    rightChannelState = it
+                checked = rightChannel,
+                onCheckedChange = {
                     onRightChannelChanged(it)
                 },
                 colors = CheckboxDefaults.colors().copy(
@@ -88,6 +83,8 @@ fun ChannelCheckboxes(
 private fun ChannelCheckboxesPreview() {
     EqualizerTheme(colorUiType = ColorUiType.DARK) {
         ChannelCheckboxes(
+            rightChannel = true,
+            leftChannel = false,
             onLeftChannelChanged = {},
             onRightChannelChanged = {}
         )

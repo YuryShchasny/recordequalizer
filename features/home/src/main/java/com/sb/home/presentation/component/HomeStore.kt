@@ -4,20 +4,17 @@ import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
 import androidx.compose.runtime.Immutable
-import com.arkivanov.essenty.lifecycle.Lifecycle
-import com.arkivanov.essenty.lifecycle.LifecycleOwner
-import com.arkivanov.essenty.lifecycle.doOnCreate
-import com.arkivanov.essenty.lifecycle.doOnDestroy
 import com.sb.audio_processor.AudioEngine
 import com.sb.core.base.BaseStore
-import com.sb.domain.entity.DefaultFrequencies
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.koin.core.component.inject
 
 
-class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner {
+class HomeStore : BaseStore() {
 
     private val context by inject<Context>()
 
@@ -25,6 +22,9 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
 
     private var _uiState = MutableStateFlow<State?>(null)
     val state = _uiState.asStateFlow()
+
+    private var _error = MutableSharedFlow<Error>()
+    val error = _error.asSharedFlow()
 
     init {
         val mAudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -38,18 +38,6 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                     inputDevices = inputDevices.toList(),
                     outputDevices = outputDevices.toList()
                 )
-            }
-        }
-        lifecycle.doOnDestroy {
-            launchIO {
-                audioEngine.onStop()
-                _uiState.update { it?.copy(playing = false) }
-            }
-        }
-        lifecycle.doOnCreate {
-            launchIO {
-                audioEngine.onStart()
-                audioEngine.initEqualizer(0f, DefaultFrequencies.get())
             }
         }
     }
@@ -68,7 +56,18 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                 launchIO {
                     try {
                         audioEngine.setInputDevice(intent.deviceInfo.id)
+                        _uiState.update {
+                            it?.copy(
+                                selectedInputDevice = intent.deviceInfo
+                            )
+                        }
                     } catch (e: Throwable) {
+                        _error.emit(Error.SelectDeviceError)
+                        _uiState.update {
+                            it?.copy(
+                                playing = false
+                            )
+                        }
                         e.printStackTrace()
                     }
                 }
@@ -76,19 +75,22 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
 
             is Intent.SelectOutputDevice -> {
                 launchIO {
-                    audioEngine.setOutputDevice(intent.deviceInfo.id)
-                }
-            }
-
-            is Intent.ChangeLeftChannel -> {
-                launchIO {
-                    audioEngine.changeLeftChannel(intent.enabled)
-                }
-            }
-
-            is Intent.ChangeRightChannel -> {
-                launchIO {
-                    audioEngine.changeRightChannel(intent.enabled)
+                    try {
+                        audioEngine.setOutputDevice(intent.deviceInfo.id)
+                        _uiState.update {
+                            it?.copy(
+                                selectedOutputDevice = intent.deviceInfo
+                            )
+                        }
+                    } catch (e: Throwable) {
+                        _error.emit(Error.SelectDeviceError)
+                        _uiState.update {
+                            it?.copy(
+                                playing = false
+                            )
+                        }
+                        e.printStackTrace()
+                    }
                 }
             }
         }
@@ -97,6 +99,8 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
     @Immutable
     data class State(
         val playing: Boolean = false,
+        val selectedInputDevice: AudioDeviceInfo? = null,
+        val selectedOutputDevice: AudioDeviceInfo? = null,
         val inputDevices: List<AudioDeviceInfo> = emptyList(),
         val outputDevices: List<AudioDeviceInfo> = emptyList(),
     )
@@ -105,7 +109,9 @@ class HomeStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
         data object PlayPause : Intent
         data class SelectInputDevice(val deviceInfo: AudioDeviceInfo) : Intent
         data class SelectOutputDevice(val deviceInfo: AudioDeviceInfo) : Intent
-        data class ChangeLeftChannel(val enabled: Boolean) : Intent
-        data class ChangeRightChannel(val enabled: Boolean) : Intent
+    }
+
+    sealed interface Error {
+        data object SelectDeviceError : Error
     }
 }

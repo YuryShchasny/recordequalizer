@@ -17,10 +17,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -45,27 +42,22 @@ fun CustomSlider(
     orientation: Orientation = Orientation.Vertical,
     labelOffset: Dp = 0.dp
 ) {
-    var sliderValue by remember { mutableFloatStateOf(value) }
     val interactionSource = remember { MutableInteractionSource() }
     CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
         if (orientation == Orientation.Vertical) {
             VerticalSlider(
                 modifier = modifier.fillMaxWidth(),
-                value = sliderValue,
+                value = value,
                 onValueChange = {
-                    if (sliderValue != it) {
-                        sliderValue = it
+                    if (value != it) {
                         onValueChanged(it)
                     }
-                },
-                onValueChangeFinished = {
-                    onValueChanged(sliderValue)
                 },
                 valueRange = valueRange,
                 interactionSource = interactionSource,
                 thumb = {
                     CustomThumb(
-                        value = sliderValue,
+                        value = value,
                         color = AppRes.colors.primary,
                         interactionSource = interactionSource,
                         labelOffset = labelOffset
@@ -73,7 +65,7 @@ fun CustomSlider(
                 },
                 track = {
                     CustomTrack(
-                        value = sliderValue,
+                        value = value,
                         valueRange = valueRange,
                         color = AppRes.colors.secondary.copy(1f),
                         tintColor = AppRes.colors.trackTintColor
@@ -83,21 +75,17 @@ fun CustomSlider(
         } else {
             Slider(
                 modifier = modifier.fillMaxWidth(),
-                value = sliderValue,
+                value = value,
                 onValueChange = {
-                    if (sliderValue != it) {
-                        sliderValue = it
+                    if (value != it) {
                         onValueChanged(it)
                     }
-                },
-                onValueChangeFinished = {
-                    onValueChanged(sliderValue)
                 },
                 valueRange = valueRange,
                 interactionSource = interactionSource,
                 thumb = {
                     CustomThumb(
-                        value = sliderValue,
+                        value = value,
                         color = AppRes.colors.primary,
                         interactionSource = interactionSource,
                         labelOffset = labelOffset
@@ -105,7 +93,7 @@ fun CustomSlider(
                 },
                 track = {
                     CustomTrack(
-                        value = sliderValue,
+                        value = value,
                         valueRange = valueRange,
                         color = AppRes.colors.secondary.copy(1f),
                         tintColor = AppRes.colors.trackTintColor

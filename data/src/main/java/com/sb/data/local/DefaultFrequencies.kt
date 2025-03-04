@@ -1,4 +1,4 @@
-package com.sb.domain.entity
+package com.sb.data.local
 
 object DefaultFrequencies {
     fun get() = listOf(

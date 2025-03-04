@@ -9,7 +9,7 @@ class DefaultHomeComponent(
     private val changeTheme: () -> Unit,
 ) : HomeComponent, ComponentContext by componentContext {
     override val homeStore: HomeStore = instanceKeeper.getOrCreate {
-        HomeStore(lifecycle)
+        HomeStore()
     }
 
     override fun onEqualizerClick() = openEqualizer()

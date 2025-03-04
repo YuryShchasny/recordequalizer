@@ -1,6 +1,7 @@
-package com.sb.home.presentation.ui.composable
+package com.sb.equalizer.presentation.ui.composable
 
-import android.media.AudioDeviceInfo
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,40 +17,37 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sb.core.composable.ClickableIcon
 import com.sb.core.resources.AppRes
-import com.sb.core.resources.theme.ColorUiType
-import com.sb.core.resources.theme.EqualizerTheme
+import com.sb.domain.entity.Profile
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AudioDeviceDropDownMenu(
+fun ProfilesDropDownMenu(
     modifier: Modifier = Modifier,
-    label: String,
-    selectedDevice: AudioDeviceInfo?,
-    devices: List<AudioDeviceInfo>,
-    onSelected: (AudioDeviceInfo) -> Unit
+    selectedProfile: Profile,
+    list: List<Profile>,
+    onSelected: (Profile) -> Unit,
+    onDelete: (Profile) -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
+        modifier = modifier,
         expanded = expanded,
         onExpandedChange = { expanded = it },
     ) {
         TextField(
-            modifier = modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
-            value = selectedDevice?.let { device ->
-                device.productName.toString() + " " + getAudioDeviceTypeString(
-                    device.type
-                )
-            } ?: AppRes.strings.default,
+            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            value = selectedProfile.name,
             onValueChange = {},
             readOnly = true,
             singleLine = true,
             label = {
                 Text(
-                    text = label,
+                    text = AppRes.strings.profile,
                     color = AppRes.colors.secondary,
                     fontSize = 10.sp,
                     style = AppRes.type.gilroy
@@ -64,57 +62,38 @@ fun AudioDeviceDropDownMenu(
                 unfocusedContainerColor = AppRes.colors.secondary.copy(alpha = 0.1f),
             )
         )
-        if (devices.isNotEmpty()) {
+        if(list.isNotEmpty()) {
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
                 shape = RoundedCornerShape(12.dp),
             ) {
-                devices.forEach { device ->
+                list.forEach { profile ->
                     DropdownMenuItem(
                         text = {
                             Text(
-                                text = device.productName.toString() + "\n" + getAudioDeviceTypeString(
-                                    device.type
-                                ),
+                                text = profile.name,
                                 color = AppRes.colors.primary,
                                 fontSize = 14.sp,
                                 style = AppRes.type.gilroyMedium
                             )
                         },
+                        trailingIcon = {
+                            ClickableIcon(
+                                modifier = Modifier.size(24.dp),
+                                imageVector = AppRes.icons.trash,
+                                tint = AppRes.colors.gray,
+                                rippleRadius = 20.dp,
+                                onClick = { onDelete(profile) }
+                            )
+                        },
                         onClick = {
                             expanded = false
-                            onSelected(device)
+                            onSelected(profile)
                         },
                     )
                 }
             }
         }
-    }
-}
-
-private fun getAudioDeviceTypeString(audioDeviceType: Int): String {
-    return when (audioDeviceType) {
-        AudioDeviceInfo.TYPE_BUILTIN_MIC -> "Микрофон"
-        AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "Bluetooth устройство"
-        AudioDeviceInfo.TYPE_TELEPHONY -> "Телефонный приемник"
-        AudioDeviceInfo.TYPE_REMOTE_SUBMIX -> "Удаленный субмикс"
-        AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> "Динамик"
-        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "Система динамиков"
-        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> "Bluetooth A2DP устройство"
-        else -> "Неизвестный тип"
-    }
-}
-
-@Preview
-@Composable
-private fun AudioDeviceDropDownMenuPreview() {
-    EqualizerTheme(colorUiType = ColorUiType.DARK) {
-        AudioDeviceDropDownMenu(
-            label = "Устройство вывода",
-            devices = listOf(),
-            selectedDevice = null,
-            onSelected = {}
-        )
     }
 }

@@ -3,11 +3,13 @@ package com.sb.core.resources.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.sb.core.resources.icons.FloppyDiskIcon
 import com.sb.core.resources.icons.MoonIcon
 import com.sb.core.resources.icons.PauseIcon
 import com.sb.core.resources.icons.PlayIcon
 import com.sb.core.resources.icons.SlidersUpIcon
 import com.sb.core.resources.icons.SunIcon
+import com.sb.core.resources.icons.TrashIcon
 
 @Immutable
 data class AppIcons(
@@ -16,6 +18,8 @@ data class AppIcons(
     val slidersUp: ImageVector = SlidersUpIcon,
     val moon: ImageVector = MoonIcon,
     val sun: ImageVector = SunIcon,
+    val save: ImageVector = FloppyDiskIcon,
+    val trash: ImageVector = TrashIcon
 )
 
 val baseAppIcons = AppIcons()

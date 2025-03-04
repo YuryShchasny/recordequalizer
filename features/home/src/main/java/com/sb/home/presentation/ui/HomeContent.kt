@@ -1,5 +1,11 @@
 package com.sb.home.presentation.ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sb.core.composable.ClickableIcon
+import com.sb.core.composable.ErrorHandler
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.ColorUiType
@@ -29,7 +36,6 @@ fun HomeContent(
     component: HomeComponent,
     modifier: Modifier = Modifier,
 ) {
-
     val state by component.homeStore.state.collectAsState()
     state?.let {
         HomeScreenContent(
@@ -40,6 +46,15 @@ fun HomeContent(
             onChangeThemeClick = component::onChangeThemeClick
         )
     } ?: Loading()
+    ErrorHandler(
+        errorFlow = component.homeStore.error,
+        errorMessageProvider = {
+            when(it) {
+                HomeStore.Error.SelectDeviceError -> AppRes.strings.errorSelectDevice
+                null -> null
+            }
+        }
+    )
 }
 
 @Composable
@@ -61,13 +76,22 @@ private fun HomeScreenContent(
                     .padding(horizontal = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                ClickableIcon(
-                    modifier = Modifier.size(24.dp),
-                    imageVector = if (AppRes.theme == ColorUiType.DARK) AppRes.icons.moon else AppRes.icons.sun,
-                    tint = AppRes.colors.secondary,
-                    rippleRadius = 20.dp,
-                    onClick = onChangeThemeClick
-                )
+                AnimatedContent(
+                    targetState = AppRes.theme == ColorUiType.DARK,
+                    transitionSpec = {
+                        (slideInVertically(initialOffsetY = { -it }) + fadeIn()).togetherWith(
+                            slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                        )
+                    },
+                ) { target ->
+                    ClickableIcon(
+                        modifier = Modifier.size(24.dp),
+                        imageVector = if (target) AppRes.icons.moon else AppRes.icons.sun,
+                        tint = AppRes.colors.secondary,
+                        rippleRadius = 20.dp,
+                        onClick = onChangeThemeClick
+                    )
+                }
                 ClickableIcon(
                     modifier = Modifier.size(24.dp),
                     imageVector = AppRes.icons.slidersUp,
@@ -82,13 +106,15 @@ private fun HomeScreenContent(
             ) {
                 AudioDeviceDropDownMenu(
                     modifier = Modifier.fillMaxWidth(),
-                    list = state.inputDevices,
+                    selectedDevice = state.selectedInputDevice,
+                    devices = state.inputDevices,
                     label = AppRes.strings.recordDevice,
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectInputDevice(it)) }
                 )
                 AudioDeviceDropDownMenu(
                     modifier = Modifier.fillMaxWidth(),
-                    list = state.outputDevices,
+                    selectedDevice = state.selectedOutputDevice,
+                    devices = state.outputDevices,
                     label = AppRes.strings.playbackDevice,
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )

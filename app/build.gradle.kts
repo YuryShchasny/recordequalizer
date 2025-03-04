@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -43,6 +44,7 @@ android {
 dependencies {
     implementation(projects.core)
     implementation(projects.domain)
+    implementation(projects.data)
     implementation(projects.audioProcessor)
     implementation(projects.features.home)
     implementation(projects.features.equalizer)
@@ -54,6 +56,9 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
     implementation(platform(libs.androidx.compose.bom))
     implementation(platform(libs.koin.bom))
+
+    implementation(libs.room)
+    ksp(libs.room.compiler)
 
     implementation(libs.bundles.ui)
     implementation(libs.bundles.decompose)

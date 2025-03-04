@@ -19,7 +19,7 @@ class DefaultRootComponent(
 ) : RootComponent, ComponentContext by componentContext {
 
     override val rootStore = instanceKeeper.getOrCreate {
-        RootStore()
+        RootStore(lifecycle)
     }
 
     private val navigation = StackNavigation<Config>()
