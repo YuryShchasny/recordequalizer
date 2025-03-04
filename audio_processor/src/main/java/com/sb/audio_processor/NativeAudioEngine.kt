@@ -2,6 +2,7 @@ package com.sb.audio_processor
 
 import android.content.Context
 import android.media.AudioManager
+import com.sb.domain.entity.Profile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -24,7 +25,15 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         amplitude: Float,
         frequenciesSize: Int,
         frequencies: IntArray,
-        gains: FloatArray
+        gains: FloatArray,
+        leftChannel: Boolean,
+        rightChannel: Boolean
+    )
+    private external fun nativeSetProfile(
+        amplitude: Float,
+        gains: FloatArray,
+        leftChannel: Boolean,
+        rightChannel: Boolean
     )
     private external fun nativeSetAmplitudeGain(gain: Float)
     private external fun nativeSetFrequencyGain(frequency: Int, gain: Float)
@@ -35,13 +44,13 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         setDefaultStreamValues(context)
     }
 
-    override suspend fun onStart() {
+    override suspend fun onCreate() {
         mutex.withLock {
             create()
         }
     }
 
-    override suspend fun onStop() {
+    override suspend fun onDestroy() {
         mutex.withLock {
             delete()
         }
@@ -110,17 +119,28 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         }
     }
 
-    override suspend fun initEqualizer(amplitude: Float, frequencies: List<Pair<Int, Float>>) =
+    override suspend fun initEqualizer(profile: Profile, frequencies: List<Int>) =
         withContext(Dispatchers.Default) {
             mutex.withLock {
                 nativeInitializeEqualizer(
-                    amplitude = amplitude,
+                    amplitude = profile.amplitude,
                     frequenciesSize = frequencies.size,
-                    frequencies = frequencies.map { it.first }.toIntArray(),
-                    gains = frequencies.map { it.second }.toFloatArray(),
+                    frequencies = frequencies.toIntArray(),
+                    gains = profile.gains.toFloatArray(),
+                    leftChannel = profile.leftChannel,
+                    rightChannel = profile.rightChannel,
                 )
             }
         }
+
+    override suspend fun setProfile(profile: Profile) {
+        nativeSetProfile(
+            amplitude = profile.amplitude,
+            gains = profile.gains.toFloatArray(),
+            leftChannel = profile.leftChannel,
+            rightChannel = profile.rightChannel
+        )
+    }
 
     private fun setDefaultStreamValues(context: Context) {
         val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

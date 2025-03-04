@@ -4,14 +4,63 @@ import androidx.compose.runtime.Immutable
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
+import com.arkivanov.essenty.lifecycle.Lifecycle
+import com.arkivanov.essenty.lifecycle.LifecycleOwner
+import com.arkivanov.essenty.lifecycle.doOnCreate
+import com.arkivanov.essenty.lifecycle.doOnDestroy
+import com.sb.audio_processor.AudioEngine
 import com.sb.core.base.BaseStore
 import com.sb.core.resources.theme.AppLanguage
 import com.sb.core.resources.theme.ColorUiType
+import com.sb.data.local.DefaultFrequencies
+import com.sb.domain.entity.Profile
+import com.sb.domain.entity.Settings
+import com.sb.domain.repository.ProfilesRepository
+import com.sb.domain.repository.SettingsRepository
+import org.koin.core.component.inject
 
-class RootStore : BaseStore() {
+class RootStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner {
+
+    private val profilesRepository by inject<ProfilesRepository>()
+    private val settingsRepository by inject<SettingsRepository>()
+    private val audioEngine by inject<AudioEngine>()
 
     private val _state = MutableValue<State>(State.Progress)
     val state: Value<State> = _state
+
+    init {
+        lifecycle.doOnDestroy {
+            launchIO {
+                audioEngine.onDestroy()
+            }
+        }
+        lifecycle.doOnCreate {
+            launchIO {
+                audioEngine.onCreate()
+            }
+        }
+        launchIO {
+            val defaultProfile = Profile(
+                name = "Default",
+                gains = DefaultFrequencies.get().map { it.second },
+                amplitude = 0f,
+                leftChannel = false,
+                rightChannel = true,
+            )
+            val profile = if (profilesRepository.getProfiles().isEmpty()) {
+                profilesRepository.addProfile(defaultProfile)
+                profilesRepository.setSelectedProfile(profilesRepository.getProfiles().first().id)
+                defaultProfile
+            } else {
+                profilesRepository.getSelectedProfile() ?: defaultProfile
+            }
+            audioEngine.initEqualizer(
+                profile = profile,
+                frequencies = DefaultFrequencies.get().map { it.first },
+            )
+        }
+
+    }
 
     fun dispatchIntent(intent: Intent) {
         when (intent) {
@@ -38,6 +87,7 @@ class RootStore : BaseStore() {
                         is State.Ready -> {
                             val newTheme =
                                 if (state.colorUiType == ColorUiType.DARK) ColorUiType.LIGHT else ColorUiType.DARK
+                            launchIO { saveTheme(newTheme) }
                             state.copy(colorUiType = newTheme)
                         }
                     }
@@ -45,13 +95,39 @@ class RootStore : BaseStore() {
             }
 
             Intent.PermissionsGranted -> {
-                _state.update { State.Ready(hasPermissions = true) }
+                launchIO {
+                    val colorUiType = getColorUiType()
+                    _state.update { State.Ready(hasPermissions = true, colorUiType = colorUiType) }
+                }
             }
 
             Intent.PermissionsDenied -> {
-                _state.update { State.Ready(hasPermissions = false) }
+                launchIO {
+                    val colorUiType = getColorUiType()
+                    _state.update { State.Ready(hasPermissions = false, colorUiType = colorUiType) }
+                }
             }
         }
+    }
+
+    private suspend fun getColorUiType(): ColorUiType {
+        val settings = settingsRepository.getSettings()
+        return when (settings.theme) {
+            Settings.Theme.DARK -> ColorUiType.DARK
+            Settings.Theme.LIGHT -> ColorUiType.LIGHT
+        }
+    }
+
+    private suspend fun saveTheme(colorUiType: ColorUiType) {
+        val settings = settingsRepository.getSettings()
+        settingsRepository.saveSettings(
+            settings.copy(
+                theme = when (colorUiType) {
+                    ColorUiType.DARK -> Settings.Theme.DARK
+                    ColorUiType.LIGHT -> Settings.Theme.LIGHT
+                }
+            )
+        )
     }
 
     @Immutable
