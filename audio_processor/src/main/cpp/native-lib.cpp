@@ -100,7 +100,9 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
                                                                          jfloat amplitude,
                                                                          jint frequenciesSize,
                                                                          jintArray frequencies,
-                                                                         jfloatArray gains) {
+                                                                         jfloatArray gains,
+                                                                         jboolean leftChannel,
+                                                                         jboolean rightChannel) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling nativeInitializeEqualizer method");
         return;
@@ -109,6 +111,8 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
     jfloat *nativeGains = env->GetFloatArrayElements(gains, NULL);
     engine->setEqualizer(frequenciesSize, nativeFrequencies, nativeGains);
     engine->setAmplitude(amplitude);
+    engine->changeLeftChannel(leftChannel);
+    engine->changeRightChannel(rightChannel);
 }
 
 JNIEXPORT void JNICALL
@@ -130,4 +134,16 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetAmplitudeGain(JNIEnv *en
     }
     engine->setAmplitude(gain);
 }
+}
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetProfile(JNIEnv *env, jobject thiz,
+                                                                jfloat amplitude, jfloatArray gains,
+                                                                jboolean leftChannel,
+                                                                jboolean rightChannel) {
+    jfloat *nativeGains = env->GetFloatArrayElements(gains, NULL);
+    engine->setFrequencyGains(nativeGains);
+    engine->setAmplitude(amplitude);
+    engine->changeLeftChannel(leftChannel);
+    engine->changeRightChannel(rightChannel);
 }

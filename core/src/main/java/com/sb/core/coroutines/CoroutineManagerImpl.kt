@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
-class CoroutineManagerImpl() : CoroutineManager {
+class CoroutineManagerImpl : CoroutineManager {
 
     private val mainDispatcher = Dispatchers.Main
     private val ioDispatcher = Dispatchers.IO

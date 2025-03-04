@@ -1,8 +1,10 @@
 package com.sb.audio_processor
 
+import com.sb.domain.entity.Profile
+
 interface AudioEngine {
-    suspend fun onStart()
-    suspend fun onStop()
+    suspend fun onCreate()
+    suspend fun onDestroy()
     suspend fun playAudio(): Boolean
     suspend fun pauseAudio(): Boolean
     suspend fun audioIsPlaying(): Boolean
@@ -12,5 +14,6 @@ interface AudioEngine {
     suspend fun changeRightChannel(enabled: Boolean)
     suspend fun setFrequencyGain(frequency: Int, value: Float)
     suspend fun setAmplitudeGain(value: Float)
-    suspend fun initEqualizer(amplitude: Float, frequencies: List<Pair<Int, Float>>)
+    suspend fun initEqualizer(profile: Profile, frequencies: List<Int>)
+    suspend fun setProfile(profile: Profile)
 }

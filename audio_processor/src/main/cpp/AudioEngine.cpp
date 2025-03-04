@@ -9,16 +9,24 @@ AudioEngine::AudioEngine() = default;
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     mRecordingDeviceId = deviceId;
     if (isPlaying()) {
-        closeStreams();
-        openStreams();
+        Result result;
+        result = closeStreams();
+        result = openStreams();
+        if (result == Result::OK) {
+            mIsPlaying = true;
+        }
     }
 }
 
 void AudioEngine::setPlaybackDeviceId(int32_t deviceId) {
     mPlaybackDeviceId = deviceId;
     if (isPlaying()) {
-        closeStreams();
-        openStreams();
+        Result result;
+        result = closeStreams();
+        result = openStreams();
+        if (result == Result::OK) {
+            mIsPlaying = true;
+        }
     }
 }
 
@@ -40,11 +48,15 @@ bool AudioEngine::isPlaying() const {
     return mIsPlaying;
 }
 
-void AudioEngine::closeStreams() {
-    mDuplexStream->stop();
-    closeStream(mPlayStream);
-    closeStream(mRecordingStream);
+Result AudioEngine::closeStreams() {
+    Result result;
+    if (mDuplexStream) {
+        result = mDuplexStream->stop();
+    }
+    result = closeStream(mPlayStream);
+    result = closeStream(mRecordingStream);
     mDuplexStream.reset();
+    return result;
 }
 
 Result AudioEngine::openStreams() {
@@ -76,6 +88,8 @@ Result AudioEngine::openStreams() {
         mDuplexStream->initEqualizer(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
     }
     mDuplexStream->amplitude = mAmplitude;
+    mDuplexStream->leftChannelEnabled = mLeftChannel;
+    mDuplexStream->rightChannelEnabled = mRightChannel;
     mDuplexStream->start();
     return result;
 }
@@ -111,7 +125,7 @@ AudioStreamBuilder *AudioEngine::setupCommonStreamParameters(
     return builder;
 }
 
-void AudioEngine::closeStream(std::shared_ptr<oboe::AudioStream> &stream) {
+Result AudioEngine::closeStream(std::shared_ptr<oboe::AudioStream> &stream) {
     if (stream) {
         Result result = stream->stop();
         if (result != oboe::Result::OK) {
@@ -124,6 +138,7 @@ void AudioEngine::closeStream(std::shared_ptr<oboe::AudioStream> &stream) {
             LOGD("Successfully closed stream");
         }
         stream.reset();
+        return result;
     }
 }
 
@@ -163,11 +178,17 @@ void AudioEngine::onErrorAfterClose(oboe::AudioStream *oboeStream,
 }
 
 void AudioEngine::changeLeftChannel(bool enabled) {
-    mDuplexStream->leftChannelEnabled = enabled;
+    mLeftChannel = enabled;
+    if (mDuplexStream) {
+        mDuplexStream->leftChannelEnabled = enabled;
+    }
 }
 
 void AudioEngine::changeRightChannel(bool enabled) {
-    mDuplexStream->rightChannelEnabled = enabled;
+    mRightChannel = enabled;
+    if (mDuplexStream) {
+        mDuplexStream->rightChannelEnabled = enabled;
+    }
 }
 
 void AudioEngine::setEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains) {
@@ -180,16 +201,25 @@ void AudioEngine::setGain(int frequency, float gain) {
     for (int i = 0; i < mFrequenciesSize; ++i) {
         if (mFrequencies[i] == frequency) {
             mFrequencyGains[i] = gain;
-            if(mDuplexStream) {
+            if (mDuplexStream) {
                 mDuplexStream->equalizer->updateGain(i, mFrequencyGains[i]);
             }
         }
     }
 }
 
+void AudioEngine::setFrequencyGains(float *frequencyGains) {
+    for (int i = 0; i < mFrequenciesSize; ++i) {
+        mFrequencyGains[i] = frequencyGains[i];
+        if (mDuplexStream) {
+            mDuplexStream->equalizer->updateGain(i, frequencyGains[i]);
+        }
+    }
+}
+
 void AudioEngine::setAmplitude(float gain) {
     mAmplitude = gain;
-    if(mDuplexStream) {
+    if (mDuplexStream) {
         mDuplexStream->amplitude = gain;
     }
 }

@@ -16,6 +16,8 @@ public:
 
     void setGain(int frequency, float gain);
 
+    void setFrequencyGains(float *frequencyGains);
+
     void setAmplitude(float gain);
 
     void setRecordingDeviceId(int32_t deviceId);
@@ -51,6 +53,8 @@ private:
     int *mFrequencies = {};
     float *mFrequencyGains = {};
     float mAmplitude = 0;
+    bool mLeftChannel = true;
+    bool mRightChannel = true;
 
     std::unique_ptr<FullDuplexPass> mDuplexStream;
     std::shared_ptr<oboe::AudioStream> mRecordingStream;
@@ -58,9 +62,9 @@ private:
 
     oboe::Result openStreams();
 
-    void closeStreams();
+    oboe::Result closeStreams();
 
-    static void closeStream(std::shared_ptr<oboe::AudioStream> &stream);
+    static oboe::Result closeStream(std::shared_ptr<oboe::AudioStream> &stream);
 
     oboe::AudioStreamBuilder *setupCommonStreamParameters(
             oboe::AudioStreamBuilder *builder);
