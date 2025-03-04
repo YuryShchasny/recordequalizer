@@ -12,7 +12,14 @@ data class AppStrings(
     val recordDevice: String,
     val playbackDevice: String,
     val default: String,
-    val gainAmplitude: String
+    val gainAmplitude: String,
+    val profile: String,
+    val save: String,
+    val cancel: String,
+    val newProfileName: String,
+    val saveNewProfile: String,
+    val profileExists: String,
+    val errorSelectDevice: String,
 )
 
 internal val russianAppStrings = AppStrings(
@@ -24,6 +31,13 @@ internal val russianAppStrings = AppStrings(
     playbackDevice = "Устройство воспроизведения",
     default = "По умолчанию",
     gainAmplitude = "Усиление амплитуды",
+    profile = "Профиль",
+    save = "Сохранить",
+    cancel = "Отмена",
+    newProfileName = "Название нового профиля",
+    saveNewProfile = "Сохранить новый профиль",
+    profileExists = "Данный профиль уже существует, измените название",
+    errorSelectDevice = "Не удалось выбрать устройство"
 )
 
 internal val englishAppStrings = AppStrings(
@@ -34,7 +48,14 @@ internal val englishAppStrings = AppStrings(
     recordDevice = "Record device",
     playbackDevice = "Playback device",
     default = "Default",
-    gainAmplitude = "Gain amplitude"
+    gainAmplitude = "Gain amplitude",
+    profile = "Profile",
+    save = "Save",
+    cancel = "Cancel",
+    newProfileName = "New profile name",
+    saveNewProfile = "Save new profile",
+    profileExists = "This profile already exists, change the name",
+    errorSelectDevice = "Device selection failed"
 )
 
 val LocalAppStrings = staticCompositionLocalOf<AppStrings> {
