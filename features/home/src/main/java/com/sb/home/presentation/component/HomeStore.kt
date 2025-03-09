@@ -3,16 +3,21 @@ package com.sb.home.presentation.component
 import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.util.Log
 import androidx.compose.runtime.Immutable
 import com.sb.audio_processor.AudioEngine
+import com.sb.audio_processor.JNICallback
 import com.sb.core.base.BaseStore
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.koin.core.component.inject
-
+import kotlin.math.abs
+import kotlin.math.log
 
 class HomeStore : BaseStore() {
 
@@ -25,6 +30,9 @@ class HomeStore : BaseStore() {
 
     private var _error = MutableSharedFlow<Error>()
     val error = _error.asSharedFlow()
+
+    private var listenerJob: Job? = null
+    private var buffer = mutableListOf<Float>()
 
     init {
         val mAudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -40,15 +48,49 @@ class HomeStore : BaseStore() {
                 )
             }
         }
+        listenerJob = launchIO {
+            while (true) {
+                delay(50)
+                if (buffer.isNotEmpty()) {
+                    val bufferCopy = mutableListOf<Float>()
+                    bufferCopy.addAll(buffer)
+                    _uiState.update {
+                        it?.copy(
+                            streamAmplitudes = it.streamAmplitudes + listOfNotNull(bufferCopy.maxOfOrNull { value ->
+                                abs(value)
+                            })
+                        )
+                    }
+                    buffer.clear()
+                }
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        listenerJob?.cancel()
+        super.onDestroy()
     }
 
     fun dispatchIntent(intent: Intent) {
         when (intent) {
             Intent.PlayPause -> {
                 launchIO {
-                    val result =
+                    val isPlaying =
                         if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
-                    _uiState.update { it?.copy(playing = result) }
+                    if (isPlaying) {
+                        audioEngine.addAudioDataListener(object : JNICallback {
+                            override fun onAudioDataReady(data: FloatArray) {
+                                buffer = buffer.apply {
+                                    add(data.average().toFloat())
+                                    takeLast(1024)
+                                }
+                            }
+                        })
+                    } else {
+                        audioEngine
+                    }
+                    _uiState.update { it?.copy(playing = isPlaying) }
                 }
             }
 
@@ -103,6 +145,7 @@ class HomeStore : BaseStore() {
         val selectedOutputDevice: AudioDeviceInfo? = null,
         val inputDevices: List<AudioDeviceInfo> = emptyList(),
         val outputDevices: List<AudioDeviceInfo> = emptyList(),
+        val streamAmplitudes: List<Float> = emptyList(),
     )
 
     sealed interface Intent {

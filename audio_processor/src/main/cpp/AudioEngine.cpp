@@ -1,4 +1,5 @@
 #include <cassert>
+#include <utility>
 #include "Log.h"
 #include "AudioEngine.h"
 
@@ -90,6 +91,9 @@ Result AudioEngine::openStreams() {
     mDuplexStream->amplitude = mAmplitude;
     mDuplexStream->leftChannelEnabled = mLeftChannel;
     mDuplexStream->rightChannelEnabled = mRightChannel;
+    if(mOnAudioReadyCallback) {
+        mDuplexStream->onAudioDataReady = std::move(mOnAudioReadyCallback);
+    }
     mDuplexStream->start();
     return result;
 }
@@ -221,5 +225,12 @@ void AudioEngine::setAmplitude(float gain) {
     mAmplitude = gain;
     if (mDuplexStream) {
         mDuplexStream->amplitude = gain;
+    }
+}
+
+void AudioEngine::setAudioDataCallback(std::function<void(std::vector<float>)> callback) {
+    mOnAudioReadyCallback = callback;
+    if(mDuplexStream) {
+        mDuplexStream->onAudioDataReady = std::move(callback);
     }
 }

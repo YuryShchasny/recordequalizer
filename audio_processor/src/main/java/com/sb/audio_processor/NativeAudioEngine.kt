@@ -29,16 +29,19 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         leftChannel: Boolean,
         rightChannel: Boolean
     )
+
     private external fun nativeSetProfile(
         amplitude: Float,
         gains: FloatArray,
         leftChannel: Boolean,
         rightChannel: Boolean
     )
+
     private external fun nativeSetAmplitudeGain(gain: Float)
     private external fun nativeSetFrequencyGain(frequency: Int, gain: Float)
     private external fun nativeChangeLeftChannel(enabled: Boolean)
     private external fun nativeChangeRightChannel(enabled: Boolean)
+    private external fun nativeAddListener(callback: JNICallback)
 
     init {
         setDefaultStreamValues(context)
@@ -141,6 +144,13 @@ class NativeAudioEngine(context: Context) : AudioEngine {
             rightChannel = profile.rightChannel
         )
     }
+
+    override suspend fun addAudioDataListener(callback: JNICallback) =
+        withContext(Dispatchers.Default) {
+            mutex.withLock {
+                nativeAddListener(callback)
+            }
+        }
 
     private fun setDefaultStreamValues(context: Context) {
         val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

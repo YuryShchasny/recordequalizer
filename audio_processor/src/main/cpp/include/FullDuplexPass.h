@@ -13,6 +13,8 @@ public:
     float amplitude = 0.0f;
     std::unique_ptr<Equalizer> equalizer;
 
+    std::function<void(std::vector<float>)> onAudioDataReady;
+
     void
     initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
         equalizer = std::make_unique<Equalizer>();
@@ -34,10 +36,15 @@ public:
         int32_t numOutputSamples = numOutputFrames * samplesPerFrame;
 
         int32_t samplesToProcess = std::min(numInputSamples, numOutputSamples);
+        std::vector<float> waveform;
         for (int32_t i = 0; i < samplesToProcess; i += 2) {
             int16_t frame[2] = {*input, *(input + 1)};
             input += 2;
             auto processOut = processFrame(frame);
+
+            waveform.push_back(static_cast<float>(processOut[0]) / SHRT_MAX);
+            waveform.push_back(static_cast<float>(processOut[1]) / SHRT_MAX);
+
             if (leftChannelEnabled) {
                 *output++ = processOut[0];
             } else {
@@ -54,7 +61,9 @@ public:
         for (int32_t i = 0; i < samplesLeft; i++) {
             *output++ = 0;
         }
-
+        if (onAudioDataReady) {
+            onAudioDataReady(waveform);
+        }
         return oboe::DataCallbackResult::Continue;
     }
 
