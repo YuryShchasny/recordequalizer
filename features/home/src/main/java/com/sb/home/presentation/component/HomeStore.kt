@@ -3,7 +3,6 @@ package com.sb.home.presentation.component
 import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
-import android.util.Log
 import androidx.compose.runtime.Immutable
 import com.sb.audio_processor.AudioEngine
 import com.sb.audio_processor.JNICallback
@@ -17,7 +16,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.koin.core.component.inject
 import kotlin.math.abs
-import kotlin.math.log
 
 class HomeStore : BaseStore() {
 
@@ -33,6 +31,14 @@ class HomeStore : BaseStore() {
 
     private var listenerJob: Job? = null
     private var buffer = mutableListOf<Float>()
+    private val listener = object : JNICallback {
+        override fun onAudioDataReady(data: FloatArray) {
+            buffer = buffer.apply {
+                add(data.average().toFloat())
+                takeLast(1024)
+            }
+        }
+    }
 
     init {
         val mAudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -79,16 +85,7 @@ class HomeStore : BaseStore() {
                     val isPlaying =
                         if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
                     if (isPlaying) {
-                        audioEngine.addAudioDataListener(object : JNICallback {
-                            override fun onAudioDataReady(data: FloatArray) {
-                                buffer = buffer.apply {
-                                    add(data.average().toFloat())
-                                    takeLast(1024)
-                                }
-                            }
-                        })
-                    } else {
-                        audioEngine
+                        audioEngine.addAudioDataListener(listener)
                     }
                     _uiState.update { it?.copy(playing = isPlaying) }
                 }

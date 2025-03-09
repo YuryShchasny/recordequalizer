@@ -12,9 +12,11 @@ void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     if (isPlaying()) {
         Result result;
         result = closeStreams();
-        result = openStreams();
         if (result == Result::OK) {
-            mIsPlaying = true;
+            result = openStreams();
+            if (result == Result::OK) {
+                mIsPlaying = true;
+            }
         }
     }
 }
@@ -24,9 +26,11 @@ void AudioEngine::setPlaybackDeviceId(int32_t deviceId) {
     if (isPlaying()) {
         Result result;
         result = closeStreams();
-        result = openStreams();
         if (result == Result::OK) {
-            mIsPlaying = true;
+            result = openStreams();
+            if (result == Result::OK) {
+                mIsPlaying = true;
+            }
         }
     }
 }
@@ -53,8 +57,10 @@ Result AudioEngine::closeStreams() {
     Result result;
     if (mDuplexStream) {
         result = mDuplexStream->stop();
+        if (result != Result::OK) return result;
     }
     result = closeStream(mPlayStream);
+    if (result != Result::OK) return result;
     result = closeStream(mRecordingStream);
     mDuplexStream.reset();
     return result;
@@ -91,7 +97,7 @@ Result AudioEngine::openStreams() {
     mDuplexStream->amplitude = mAmplitude;
     mDuplexStream->leftChannelEnabled = mLeftChannel;
     mDuplexStream->rightChannelEnabled = mRightChannel;
-    if(mOnAudioReadyCallback) {
+    if (mOnAudioReadyCallback) {
         mDuplexStream->onAudioDataReady = std::move(mOnAudioReadyCallback);
     }
     mDuplexStream->start();
@@ -230,7 +236,7 @@ void AudioEngine::setAmplitude(float gain) {
 
 void AudioEngine::setAudioDataCallback(std::function<void(std::vector<float>)> callback) {
     mOnAudioReadyCallback = callback;
-    if(mDuplexStream) {
+    if (mDuplexStream) {
         mDuplexStream->onAudioDataReady = std::move(callback);
     }
 }

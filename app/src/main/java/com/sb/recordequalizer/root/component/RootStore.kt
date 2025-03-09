@@ -1,6 +1,5 @@
 package com.sb.recordequalizer.root.component
 
-import android.util.Log
 import androidx.compose.runtime.Immutable
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
@@ -30,9 +29,10 @@ class RootStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
     val state: Value<State> = _state
 
     init {
-        launchMain {
-            Log.d("MY_TAG", "CREATE")
-            audioEngine.onCreate()
+        lifecycle.doOnCreate {
+            launchIO {
+                audioEngine.onCreate()
+            }
         }
         lifecycle.doOnDestroy {
             launchIO {
