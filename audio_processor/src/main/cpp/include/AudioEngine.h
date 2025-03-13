@@ -28,6 +28,8 @@ public:
 
     void changeRightChannel(bool enabled);
 
+    void setAudioDataCallback(std::function<void(std::vector<float>)> callback);
+
     void play();
 
     void stop();
@@ -53,6 +55,7 @@ private:
     int *mFrequencies = {};
     float *mFrequencyGains = {};
     float mAmplitude = 0;
+    std::function<void(std::vector<float>)> mOnAudioReadyCallback;
     bool mLeftChannel = true;
     bool mRightChannel = true;
 
