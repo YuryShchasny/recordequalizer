@@ -29,14 +29,14 @@ class RootStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
     val state: Value<State> = _state
 
     init {
-        lifecycle.doOnDestroy {
-            launchIO {
-                audioEngine.onDestroy()
-            }
-        }
         lifecycle.doOnCreate {
             launchIO {
                 audioEngine.onCreate()
+            }
+        }
+        lifecycle.doOnDestroy {
+            launchIO {
+                audioEngine.onDestroy()
             }
         }
         launchIO {

@@ -16,4 +16,5 @@ interface AudioEngine {
     suspend fun setAmplitudeGain(value: Float)
     suspend fun initEqualizer(profile: Profile, frequencies: List<Int>)
     suspend fun setProfile(profile: Profile)
+    suspend fun addAudioDataListener(callback: JNICallback)
 }

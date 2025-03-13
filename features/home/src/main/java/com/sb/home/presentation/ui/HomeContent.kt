@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import com.sb.core.resources.theme.EqualizerTheme
 import com.sb.home.presentation.component.HomeComponent
 import com.sb.home.presentation.component.HomeStore
 import com.sb.home.presentation.ui.composable.AudioDeviceDropDownMenu
+import com.sb.home.presentation.ui.composable.Waveform
 
 @Composable
 fun HomeContent(
@@ -49,7 +51,7 @@ fun HomeContent(
     ErrorHandler(
         errorFlow = component.homeStore.error,
         errorMessageProvider = {
-            when(it) {
+            when (it) {
                 HomeStore.Error.SelectDeviceError -> AppRes.strings.errorSelectDevice
                 null -> null
             }
@@ -119,6 +121,13 @@ private fun HomeScreenContent(
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )
             }
+            Waveform(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(300.dp),
+                amplitudes = state.streamAmplitudes,
+                scale = 12f
+            )
             ClickableIcon(
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
