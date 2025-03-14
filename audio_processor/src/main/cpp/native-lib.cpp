@@ -26,7 +26,7 @@ Java_com_sb_audio_1processor_NativeAudioEngine_delete(JNIEnv *env, jobject thiz)
         LOGD("No listener to remove");
     }
     if (engine) {
-        engine->stop();
+        engine->destroy();
         delete engine;
         engine = nullptr;
     }
