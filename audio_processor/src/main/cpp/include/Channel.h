@@ -1,0 +1,10 @@
+
+#ifndef RECORDEQUALIZER_CHANNEL_H
+#define RECORDEQUALIZER_CHANNEL_H
+
+enum class Channel {
+    RIGHT,
+    LEFT
+};
+
+#endif //RECORDEQUALIZER_CHANNEL_H

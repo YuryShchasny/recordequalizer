@@ -68,14 +68,15 @@ class HomeStore : BaseStore() {
                         )
                     }
                     buffer.clear()
+                } else {
+                    _uiState.update {
+                        it?.copy(
+                            streamAmplitudes = it.streamAmplitudes + listOfNotNull(0f)
+                        )
+                    }
                 }
             }
         }
-    }
-
-    override fun onDestroy() {
-        listenerJob?.cancel()
-        super.onDestroy()
     }
 
     fun dispatchIntent(intent: Intent) {

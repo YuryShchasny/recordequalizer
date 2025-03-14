@@ -3,14 +3,13 @@
 
 #include <memory>
 #include "Equalizer.h"
+#include "Effect.h"
 #include "Log.h"
 
 class FullDuplexPass : public oboe::FullDuplexStream {
 public:
 
-    bool leftChannelEnabled = true;
-    bool rightChannelEnabled = true;
-    float amplitude = 0.0f;
+    std::shared_ptr<std::vector<Effect *>> effects;
     std::unique_ptr<Equalizer> equalizer;
 
     std::function<void(std::vector<float>)> onAudioDataReady;
@@ -40,21 +39,14 @@ public:
         for (int32_t i = 0; i < samplesToProcess; i += 2) {
             int16_t frame[2] = {*input, *(input + 1)};
             input += 2;
+
             auto processOut = processFrame(frame);
 
             waveform.push_back(static_cast<float>(processOut[0]) / SHRT_MAX);
             waveform.push_back(static_cast<float>(processOut[1]) / SHRT_MAX);
 
-            if (leftChannelEnabled) {
-                *output++ = processOut[0];
-            } else {
-                *output++ = 0;
-            }
-            if (rightChannelEnabled) {
-                *output++ = processOut[1];
-            } else {
-                *output++ = 0;
-            }
+            *output++ = processOut[0];
+            *output++ = processOut[1];
         }
 
         int32_t samplesLeft = numOutputSamples - numInputSamples;
@@ -69,22 +61,15 @@ public:
 
 private:
     int16_t *processFrame(int16_t frame[2]) const {
+        for (Effect *effect : *effects) {
+            if(effect) {
+                effect->process(frame);
+            }
+        }
         if (equalizer) {
             equalizer->process(frame);
         }
-        applyGain(frame);
         return frame;
-    }
-
-    void applyGain(int16_t *frame) const {
-        float A = pow(10, amplitude / 20.0f);
-        for (int i = 0; i < 2; ++i) {
-            int32_t sample = static_cast<int32_t>(frame[i]);
-            sample = sample * A;
-            if (sample > SHRT_MAX) sample = SHRT_MAX;
-            if (sample < SHRT_MIN) sample = SHRT_MIN;
-            frame[i] = static_cast<int16_t>(sample);
-        }
     }
 };
 

@@ -5,7 +5,14 @@
 
 using namespace oboe;
 
-AudioEngine::AudioEngine() = default;
+AudioEngine::AudioEngine() {
+    mAmplitudeEffect = new AmplitudeEffect(0.0f);
+    mChannelsEffect = new ChannelsEffect(false, false);
+    mCompressEffect = new CompressEffect(-10.0f, 4.0f);
+    mEffects->push_back(mAmplitudeEffect);
+    mEffects->push_back(mChannelsEffect);
+   // mEffects->push_back(mCompressEffect);
+}
 
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     mRecordingDeviceId = deviceId;
@@ -47,6 +54,13 @@ void AudioEngine::play() {
 void AudioEngine::stop() {
     closeStreams();
     mIsPlaying = false;
+}
+
+void AudioEngine::destroy() {
+    stop();
+    for (Effect *effect : *mEffects) {
+        delete effect;
+    }
 }
 
 bool AudioEngine::isPlaying() const {
@@ -94,12 +108,10 @@ Result AudioEngine::openStreams() {
     if (mFrequenciesSize > 0) {
         mDuplexStream->initEqualizer(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
     }
-    mDuplexStream->amplitude = mAmplitude;
-    mDuplexStream->leftChannelEnabled = mLeftChannel;
-    mDuplexStream->rightChannelEnabled = mRightChannel;
     if (mOnAudioReadyCallback) {
         mDuplexStream->onAudioDataReady = std::move(mOnAudioReadyCallback);
     }
+    mDuplexStream->effects = mEffects;
     mDuplexStream->start();
     return result;
 }
@@ -188,16 +200,14 @@ void AudioEngine::onErrorAfterClose(oboe::AudioStream *oboeStream,
 }
 
 void AudioEngine::changeLeftChannel(bool enabled) {
-    mLeftChannel = enabled;
-    if (mDuplexStream) {
-        mDuplexStream->leftChannelEnabled = enabled;
+    if(mChannelsEffect) {
+        mChannelsEffect->setMute(Channel::LEFT, !enabled);
     }
 }
 
 void AudioEngine::changeRightChannel(bool enabled) {
-    mRightChannel = enabled;
-    if (mDuplexStream) {
-        mDuplexStream->rightChannelEnabled = enabled;
+    if(mChannelsEffect) {
+        mChannelsEffect->setMute(Channel::RIGHT, !enabled);
     }
 }
 
@@ -228,9 +238,8 @@ void AudioEngine::setFrequencyGains(float *frequencyGains) {
 }
 
 void AudioEngine::setAmplitude(float gain) {
-    mAmplitude = gain;
-    if (mDuplexStream) {
-        mDuplexStream->amplitude = gain;
+    if(mAmplitudeEffect) {
+        mAmplitudeEffect->setAmplitude(gain);
     }
 }
 
