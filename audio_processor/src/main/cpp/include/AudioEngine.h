@@ -7,6 +7,11 @@
 #include <thread>
 #include "FullDuplexPass.h"
 #include "Equalizer.h"
+#include "Effect.h"
+
+#include "AmplitudeEffect.h"
+#include "ChannelsEffect.h"
+#include "CompressEffect.h"
 
 class AudioEngine : public oboe::AudioStreamCallback {
 public:
@@ -34,6 +39,8 @@ public:
 
     void stop();
 
+    void destroy();
+
     bool isPlaying() const;
 
     oboe::DataCallbackResult onAudioReady(oboe::AudioStream *oboeStream,
@@ -54,10 +61,12 @@ private:
     int mFrequenciesSize = 0;
     int *mFrequencies = {};
     float *mFrequencyGains = {};
-    float mAmplitude = 0;
+    std::shared_ptr<std::vector<Effect *>> mEffects = std::make_shared<std::vector<Effect *>>();
+    AmplitudeEffect *mAmplitudeEffect;
+    ChannelsEffect *mChannelsEffect;
+    CompressEffect *mCompressEffect;
+
     std::function<void(std::vector<float>)> mOnAudioReadyCallback;
-    bool mLeftChannel = true;
-    bool mRightChannel = true;
 
     std::unique_ptr<FullDuplexPass> mDuplexStream;
     std::shared_ptr<oboe::AudioStream> mRecordingStream;
