@@ -20,6 +20,7 @@ data class AppStrings(
     val saveNewProfile: String,
     val profileExists: String,
     val errorSelectDevice: String,
+    val compressorEffect: String,
 )
 
 internal val russianAppStrings = AppStrings(
@@ -37,7 +38,8 @@ internal val russianAppStrings = AppStrings(
     newProfileName = "Название нового профиля",
     saveNewProfile = "Сохранить новый профиль",
     profileExists = "Данный профиль уже существует, измените название",
-    errorSelectDevice = "Не удалось выбрать устройство"
+    errorSelectDevice = "Не удалось выбрать устройство",
+    compressorEffect = "Эффект компрессии"
 )
 
 internal val englishAppStrings = AppStrings(
@@ -55,7 +57,8 @@ internal val englishAppStrings = AppStrings(
     newProfileName = "New profile name",
     saveNewProfile = "Save new profile",
     profileExists = "This profile already exists, change the name",
-    errorSelectDevice = "Device selection failed"
+    errorSelectDevice = "Device selection failed",
+    compressorEffect = "Compression effect"
 )
 
 val LocalAppStrings = staticCompositionLocalOf<AppStrings> {

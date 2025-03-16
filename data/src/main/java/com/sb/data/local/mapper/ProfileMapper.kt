@@ -9,7 +9,8 @@ internal fun Profile.toEntity() = ProfileDbo(
     gains = gains,
     amplitude = amplitude,
     leftChannel = leftChannel,
-    rightChannel = rightChannel
+    rightChannel = rightChannel,
+    compressorEnabled = compressorEnabled
 )
 
 internal fun ProfileDbo.toDomain() = Profile(
@@ -18,5 +19,6 @@ internal fun ProfileDbo.toDomain() = Profile(
     gains = gains,
     amplitude = amplitude,
     leftChannel = leftChannel,
-    rightChannel = rightChannel
+    rightChannel = rightChannel,
+    compressorEnabled = compressorEnabled
 )

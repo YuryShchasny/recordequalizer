@@ -90,7 +90,8 @@ class EqualizerStore : BaseStore() {
                             gains = state.frequencies.map { it.second },
                             amplitude = state.amplitude,
                             leftChannel = state.leftChannelEnabled,
-                            rightChannel = state.rightChannelEnabled
+                            rightChannel = state.rightChannelEnabled,
+                            compressorEnabled = state.compressorEnabled,
                         )
                         profilesRepository.addProfile(newProfile)
                         val profiles = profilesRepository.getProfiles()
@@ -111,6 +112,17 @@ class EqualizerStore : BaseStore() {
                             profiles = profilesRepository.getProfiles()
                         )
                     }
+                }
+            }
+
+            is Intent.EnableCompressor -> {
+                launchIO {
+                    _uiState.update {
+                        it?.copy(
+                            compressorEnabled = intent.enabled
+                        )
+                    }
+                    audioEngine.enableCompressor(intent.enabled)
                 }
             }
         }
@@ -136,6 +148,7 @@ class EqualizerStore : BaseStore() {
                 frequencies = frequencies,
                 leftChannelEnabled = profile.leftChannel,
                 rightChannelEnabled = profile.rightChannel,
+                compressorEnabled = profile.compressorEnabled
             )
         }
         audioEngine.setProfile(profile)
@@ -149,6 +162,7 @@ class EqualizerStore : BaseStore() {
         val amplitude: Float,
         val leftChannelEnabled: Boolean,
         val rightChannelEnabled: Boolean,
+        val compressorEnabled: Boolean,
     )
 
     sealed interface Intent {
@@ -157,6 +171,7 @@ class EqualizerStore : BaseStore() {
         data class ChangeRightChannel(val enabled: Boolean) : Intent
         data class FrequencyGainChanged(val frequency: Int, val value: Float) : Intent
         data class AmplitudeGainChanged(val value: Float) : Intent
+        data class EnableCompressor(val enabled: Boolean) : Intent
         data class SaveNewProfile(val name: String) : Intent
         data class DeleteProfile(val profile: Profile) : Intent
     }

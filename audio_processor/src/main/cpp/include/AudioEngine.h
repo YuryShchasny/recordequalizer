@@ -41,6 +41,8 @@ public:
 
     void destroy();
 
+    void enableCompressor(bool enabled);
+
     bool isPlaying() const;
 
     oboe::DataCallbackResult onAudioReady(oboe::AudioStream *oboeStream,

@@ -112,7 +112,8 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
                                                                          jintArray frequencies,
                                                                          jfloatArray gains,
                                                                          jboolean leftChannel,
-                                                                         jboolean rightChannel) {
+                                                                         jboolean rightChannel,
+                                                                         jboolean compressorEnabled) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling nativeInitializeEqualizer method");
         return;
@@ -123,6 +124,7 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
     engine->setAmplitude(amplitude);
     engine->changeLeftChannel(leftChannel);
     engine->changeRightChannel(rightChannel);
+    engine->enableCompressor(compressorEnabled);
 }
 
 JNIEXPORT void JNICALL
@@ -148,7 +150,8 @@ JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetProfile(JNIEnv *env, jobject thiz,
                                                                 jfloat amplitude, jfloatArray gains,
                                                                 jboolean leftChannel,
-                                                                jboolean rightChannel) {
+                                                                jboolean rightChannel,
+                                                                jboolean compressorEnabled) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling nativeSetProfile method");
         return;
@@ -158,6 +161,7 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetProfile(JNIEnv *env, job
     engine->setAmplitude(amplitude);
     engine->changeLeftChannel(leftChannel);
     engine->changeRightChannel(rightChannel);
+    engine->enableCompressor(compressorEnabled);
 }
 
 JNIEXPORT void JNICALL
@@ -199,5 +203,14 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeAddListener(JNIEnv *env, jo
         };
         engine->setAudioDataCallback(onAudioDataReady);
     }
+}
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeEnableCompressor(JNIEnv *env, jobject thiz,
+                                                                      jboolean enabled) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling nativeEnableCompressor method");
+        return;
+    }
+    engine->enableCompressor(enabled);
 }
 }

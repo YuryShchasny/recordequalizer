@@ -44,8 +44,9 @@ class RootStore(override val lifecycle: Lifecycle) : BaseStore(), LifecycleOwner
                 name = "Default",
                 gains = DefaultFrequencies.get().map { it.second },
                 amplitude = 0f,
-                leftChannel = false,
+                leftChannel = true,
                 rightChannel = true,
+                compressorEnabled = false,
             )
             val profile = if (profilesRepository.getProfiles().isEmpty()) {
                 profilesRepository.addProfile(defaultProfile)

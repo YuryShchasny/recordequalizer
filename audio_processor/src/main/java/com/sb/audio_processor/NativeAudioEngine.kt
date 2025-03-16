@@ -4,6 +4,7 @@ import android.content.Context
 import android.media.AudioManager
 import com.sb.domain.entity.Profile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -27,14 +28,16 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         frequencies: IntArray,
         gains: FloatArray,
         leftChannel: Boolean,
-        rightChannel: Boolean
+        rightChannel: Boolean,
+        compressorEnabled: Boolean,
     )
 
     private external fun nativeSetProfile(
         amplitude: Float,
         gains: FloatArray,
         leftChannel: Boolean,
-        rightChannel: Boolean
+        rightChannel: Boolean,
+        compressorEnabled: Boolean
     )
 
     private external fun nativeSetAmplitudeGain(gain: Float)
@@ -42,6 +45,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     private external fun nativeChangeLeftChannel(enabled: Boolean)
     private external fun nativeChangeRightChannel(enabled: Boolean)
     private external fun nativeAddListener(callback: JNICallback)
+    private external fun nativeEnableCompressor(enabled: Boolean)
 
     init {
         setDefaultStreamValues(context)
@@ -132,6 +136,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
                     gains = profile.gains.toFloatArray(),
                     leftChannel = profile.leftChannel,
                     rightChannel = profile.rightChannel,
+                    compressorEnabled = profile.compressorEnabled
                 )
             }
         }
@@ -141,7 +146,8 @@ class NativeAudioEngine(context: Context) : AudioEngine {
             amplitude = profile.amplitude,
             gains = profile.gains.toFloatArray(),
             leftChannel = profile.leftChannel,
-            rightChannel = profile.rightChannel
+            rightChannel = profile.rightChannel,
+            compressorEnabled = profile.compressorEnabled
         )
     }
 
@@ -151,6 +157,12 @@ class NativeAudioEngine(context: Context) : AudioEngine {
                 nativeAddListener(callback)
             }
         }
+
+    override suspend fun enableCompressor(enabled: Boolean) = withContext(Dispatchers.Default) {
+        mutex.withLock {
+            nativeEnableCompressor(enabled)
+        }
+    }
 
     private fun setDefaultStreamValues(context: Context) {
         val myAudioMgr = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager

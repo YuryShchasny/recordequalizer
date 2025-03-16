@@ -7,11 +7,10 @@ using namespace oboe;
 
 AudioEngine::AudioEngine() {
     mAmplitudeEffect = new AmplitudeEffect(0.0f);
-    mChannelsEffect = new ChannelsEffect(false, false);
     mCompressEffect = new CompressEffect(-10.0f, 4.0f);
+    mChannelsEffect = new ChannelsEffect(false, false);
     mEffects->push_back(mAmplitudeEffect);
     mEffects->push_back(mChannelsEffect);
-   // mEffects->push_back(mCompressEffect);
 }
 
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
@@ -58,7 +57,7 @@ void AudioEngine::stop() {
 
 void AudioEngine::destroy() {
     stop();
-    for (Effect *effect : *mEffects) {
+    for (Effect *effect: *mEffects) {
         delete effect;
     }
 }
@@ -200,13 +199,13 @@ void AudioEngine::onErrorAfterClose(oboe::AudioStream *oboeStream,
 }
 
 void AudioEngine::changeLeftChannel(bool enabled) {
-    if(mChannelsEffect) {
+    if (mChannelsEffect) {
         mChannelsEffect->setMute(Channel::LEFT, !enabled);
     }
 }
 
 void AudioEngine::changeRightChannel(bool enabled) {
-    if(mChannelsEffect) {
+    if (mChannelsEffect) {
         mChannelsEffect->setMute(Channel::RIGHT, !enabled);
     }
 }
@@ -238,7 +237,7 @@ void AudioEngine::setFrequencyGains(float *frequencyGains) {
 }
 
 void AudioEngine::setAmplitude(float gain) {
-    if(mAmplitudeEffect) {
+    if (mAmplitudeEffect) {
         mAmplitudeEffect->setAmplitude(gain);
     }
 }
@@ -247,5 +246,21 @@ void AudioEngine::setAudioDataCallback(std::function<void(std::vector<float>)> c
     mOnAudioReadyCallback = callback;
     if (mDuplexStream) {
         mDuplexStream->onAudioDataReady = std::move(callback);
+    }
+}
+
+void AudioEngine::enableCompressor(bool enabled) {
+    if (enabled) {
+        bool hasCompressor = std::any_of(mEffects->begin(), mEffects->end(), [](Effect *effect) {
+            return typeid(*effect) == typeid(CompressEffect);
+        });
+        if (!hasCompressor) {
+            mEffects->insert(mEffects->begin(), mCompressEffect);
+        }
+    } else {
+        auto it = std::find(mEffects->begin(), mEffects->end(), mCompressEffect);
+        if (it != mEffects->end()) {
+            mEffects->erase(it);
+        }
     }
 }
