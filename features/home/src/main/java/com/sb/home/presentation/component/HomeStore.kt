@@ -79,19 +79,14 @@ class HomeStore : BaseStore() {
         }
     }
 
+    fun initListener() {
+        launchMain {
+            audioEngine.addAudioDataListener(listener)
+        }
+    }
+
     fun dispatchIntent(intent: Intent) {
         when (intent) {
-            Intent.PlayPause -> {
-                launchIO {
-                    val isPlaying =
-                        if (audioEngine.audioIsPlaying()) audioEngine.pauseAudio() else audioEngine.playAudio()
-                    if (isPlaying) {
-                        audioEngine.addAudioDataListener(listener)
-                    }
-                    _uiState.update { it?.copy(playing = isPlaying) }
-                }
-            }
-
             is Intent.SelectInputDevice -> {
                 launchIO {
                     try {
@@ -133,12 +128,45 @@ class HomeStore : BaseStore() {
                     }
                 }
             }
+
+            Intent.ListenClick -> {
+                launchIO {
+                    val result = if (audioEngine.audioIsPlaying()) {
+                        audioEngine.pauseAudio()
+                    } else {
+                        audioEngine.playAudio(false)
+                    }
+                    _uiState.update {
+                        it?.copy(
+                            playing = result,
+                            recordMode = false
+                        )
+                    }
+                }
+            }
+
+            Intent.RecordClick -> {
+                launchIO {
+                    val result = if (audioEngine.audioIsPlaying()) {
+                        audioEngine.pauseAudio()
+                    } else {
+                        audioEngine.playAudio(true)
+                    }
+                    _uiState.update {
+                        it?.copy(
+                            playing = result,
+                            recordMode = true
+                        )
+                    }
+                }
+            }
         }
     }
 
     @Immutable
     data class State(
         val playing: Boolean = false,
+        val recordMode: Boolean = false,
         val selectedInputDevice: AudioDeviceInfo? = null,
         val selectedOutputDevice: AudioDeviceInfo? = null,
         val inputDevices: List<AudioDeviceInfo> = emptyList(),
@@ -147,7 +175,8 @@ class HomeStore : BaseStore() {
     )
 
     sealed interface Intent {
-        data object PlayPause : Intent
+        data object ListenClick : Intent
+        data object RecordClick : Intent
         data class SelectInputDevice(val deviceInfo: AudioDeviceInfo) : Intent
         data class SelectOutputDevice(val deviceInfo: AudioDeviceInfo) : Intent
     }

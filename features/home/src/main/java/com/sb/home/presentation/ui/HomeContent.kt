@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sb.core.composable.ClickableIcon
 import com.sb.core.composable.ErrorHandler
+import com.sb.core.composable.Launched
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.ColorUiType
@@ -31,6 +32,8 @@ import com.sb.core.resources.theme.EqualizerTheme
 import com.sb.home.presentation.component.HomeComponent
 import com.sb.home.presentation.component.HomeStore
 import com.sb.home.presentation.ui.composable.AudioDeviceDropDownMenu
+import com.sb.home.presentation.ui.composable.ListenButton
+import com.sb.home.presentation.ui.composable.RecordButton
 import com.sb.home.presentation.ui.composable.Waveform
 
 @Composable
@@ -47,6 +50,9 @@ fun HomeContent(
             onEqualizerIconClick = component::onEqualizerClick,
             onChangeThemeClick = component::onChangeThemeClick
         )
+        Launched {
+            component.homeStore.initListener()
+        }
     } ?: Loading()
     ErrorHandler(
         errorFlow = component.homeStore.error,
@@ -128,15 +134,46 @@ private fun HomeScreenContent(
                 amplitudes = state.streamAmplitudes,
                 scale = 12f
             )
-            ClickableIcon(
+            Box(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .size(32.dp),
-                imageVector = if (state.playing) AppRes.icons.pause else AppRes.icons.play,
-                tint = AppRes.colors.primary,
-                rippleRadius = 24.dp,
-                onClick = { dispatchIntent(HomeStore.Intent.PlayPause) }
-            )
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+
+                AnimatedContent(
+                    targetState = state.playing
+                ) { isPlaying ->
+                    if (isPlaying) {
+                        if (state.recordMode) {
+                            RecordButton(
+                                isPlaying = true,
+                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
+                            )
+                        } else {
+                            ListenButton(
+                                isPlaying = true,
+                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(20.dp),
+                        ) {
+                            ListenButton(
+                                isPlaying = false,
+                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
+                            )
+                            RecordButton(
+                                isPlaying = false,
+                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -146,7 +183,10 @@ private fun HomeScreenContent(
 private fun HomeScreenPreview() {
     EqualizerTheme(colorUiType = ColorUiType.DARK) {
         HomeScreenContent(
-            state = HomeStore.State(),
+            state = HomeStore.State(
+                playing = true,
+                recordMode = true
+            ),
             dispatchIntent = {},
             onEqualizerIconClick = {},
             onChangeThemeClick = {}

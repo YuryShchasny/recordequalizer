@@ -33,12 +33,13 @@ Java_com_sb_audio_1processor_NativeAudioEngine_delete(JNIEnv *env, jobject thiz)
 }
 
 JNIEXPORT void JNICALL
-Java_com_sb_audio_1processor_NativeAudioEngine_play(JNIEnv *env, jobject thiz) {
+Java_com_sb_audio_1processor_NativeAudioEngine_play(JNIEnv *env, jobject thiz,
+                                                    jboolean withRecord) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling play method");
         return;
     }
-    engine->play();
+    engine->play(withRecord);
 }
 
 JNIEXPORT void JNICALL

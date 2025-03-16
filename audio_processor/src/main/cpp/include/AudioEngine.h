@@ -35,7 +35,7 @@ public:
 
     void setAudioDataCallback(std::function<void(std::vector<float>)> callback);
 
-    void play();
+    void play(bool withRecord);
 
     void stop();
 
@@ -74,7 +74,7 @@ private:
     std::shared_ptr<oboe::AudioStream> mRecordingStream;
     std::shared_ptr<oboe::AudioStream> mPlayStream;
 
-    oboe::Result openStreams();
+    oboe::Result openStreams(bool withRecording);
 
     oboe::Result closeStreams();
 

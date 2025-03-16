@@ -30,6 +30,7 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         AudioEngine.cpp
         Equalizer.cpp
         BiQuadFilter.cpp
+        Recorder.cpp
 )
 
 include_directories(include)

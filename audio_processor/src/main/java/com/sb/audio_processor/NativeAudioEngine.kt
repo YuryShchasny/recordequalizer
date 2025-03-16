@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.AudioManager
 import com.sb.domain.entity.Profile
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -16,7 +15,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
 
     private external fun create(): Boolean
     private external fun delete()
-    private external fun play()
+    private external fun play(withRecord: Boolean)
     private external fun stop()
     private external fun isPlaying(): Boolean
     private external fun setRecordingDeviceId(deviceId: Int)
@@ -63,10 +62,10 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         }
     }
 
-    override suspend fun playAudio(): Boolean = withContext(Dispatchers.Default) {
+    override suspend fun playAudio(withRecord: Boolean): Boolean = withContext(Dispatchers.Default) {
         mutex.withLock {
             if (!isPlaying()) {
-                val job = launch { play() }
+                val job = launch { play(withRecord) }
                 job.join()
                 return@withContext isPlaying()
             }

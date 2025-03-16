@@ -5,14 +5,33 @@
 #include "Equalizer.h"
 #include "Effect.h"
 #include "Log.h"
+#include "Recorder.h"
 
 class FullDuplexPass : public oboe::FullDuplexStream {
 public:
-
+    FullDuplexPass() {
+        recorder = std::make_unique<Recorder>();
+    }
     std::shared_ptr<std::vector<Effect *>> effects;
     std::unique_ptr<Equalizer> equalizer;
 
     std::function<void(std::vector<float>)> onAudioDataReady;
+
+    std::unique_ptr<Recorder> recorder;
+    bool isRecording = false;
+
+    void setRecording(bool enable) {
+        if (enable && !isRecording) {
+            int sampleRate = getInputStream()->getSampleRate();
+            int numChannels = getInputStream()->getChannelCount();
+            if (recorder->startRecording(sampleRate, numChannels)) {
+                isRecording = true;
+            }
+        } else if (!enable && isRecording) {
+            recorder->close();
+            isRecording = false;
+        }
+    }
 
     void
     initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
@@ -47,6 +66,10 @@ public:
 
             *output++ = processOut[0];
             *output++ = processOut[1];
+
+            if (isRecording && recorder) {
+                recorder->writeFrame(processOut);
+            }
         }
 
         int32_t samplesLeft = numOutputSamples - numInputSamples;
@@ -61,8 +84,8 @@ public:
 
 private:
     int16_t *processFrame(int16_t frame[2]) const {
-        for (Effect *effect : *effects) {
-            if(effect) {
+        for (Effect *effect: *effects) {
+            if (effect) {
                 effect->process(frame);
             }
         }

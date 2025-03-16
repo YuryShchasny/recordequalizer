@@ -15,21 +15,21 @@ AudioEngine::AudioEngine() {
 
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     mRecordingDeviceId = deviceId;
-    if (isPlaying()) {
-        Result result;
-        result = closeStreams();
-        if (result == Result::OK) {
-            result = openStreams();
-            if (result == Result::OK) {
-                mIsPlaying = true;
-            }
-        }
-    }
+    /* if (isPlaying()) {
+         Result result;
+         result = closeStreams();
+         if (result == Result::OK) {
+             result = openStreams();
+             if (result == Result::OK) {
+                 mIsPlaying = true;
+             }
+         }
+     }*/
 }
 
 void AudioEngine::setPlaybackDeviceId(int32_t deviceId) {
     mPlaybackDeviceId = deviceId;
-    if (isPlaying()) {
+    /*if (isPlaying()) {
         Result result;
         result = closeStreams();
         if (result == Result::OK) {
@@ -38,11 +38,11 @@ void AudioEngine::setPlaybackDeviceId(int32_t deviceId) {
                 mIsPlaying = true;
             }
         }
-    }
+    }*/
 }
 
-void AudioEngine::play() {
-    bool success = openStreams() == Result::OK;
+void AudioEngine::play(bool withRecord) {
+    bool success = openStreams(withRecord) == Result::OK;
     if (success) {
         mIsPlaying = true;
     } else {
@@ -51,6 +51,9 @@ void AudioEngine::play() {
 }
 
 void AudioEngine::stop() {
+    if (mDuplexStream) {
+        mDuplexStream->setRecording(false);
+    }
     closeStreams();
     mIsPlaying = false;
 }
@@ -79,7 +82,7 @@ Result AudioEngine::closeStreams() {
     return result;
 }
 
-Result AudioEngine::openStreams() {
+Result AudioEngine::openStreams(bool withRecording) {
     AudioStreamBuilder inBuilder, outBuilder;
     setupPlaybackStreamParameters(&outBuilder);
     Result result = outBuilder.openStream(mPlayStream);
@@ -111,6 +114,9 @@ Result AudioEngine::openStreams() {
         mDuplexStream->onAudioDataReady = std::move(mOnAudioReadyCallback);
     }
     mDuplexStream->effects = mEffects;
+    if (withRecording) {
+        mDuplexStream->setRecording(true);
+    }
     mDuplexStream->start();
     return result;
 }
@@ -191,11 +197,6 @@ void AudioEngine::onErrorAfterClose(oboe::AudioStream *oboeStream,
          oboe::convertToText(error));
 
     closeStreams();
-
-    if (error == oboe::Result::ErrorDisconnected) {
-        LOGD("Restarting AudioStream");
-        openStreams();
-    }
 }
 
 void AudioEngine::changeLeftChannel(bool enabled) {

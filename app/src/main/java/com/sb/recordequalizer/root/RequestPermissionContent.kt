@@ -18,7 +18,7 @@ import com.sb.core.resources.AppRes
 @Composable
 fun RequestPermissionContent(
     modifier: Modifier = Modifier,
-    permissionRequestLauncher: ManagedActivityResultLauncher<String, Boolean>
+    permissionRequestLauncher: ManagedActivityResultLauncher<Array<String>, Map<String, Boolean>>
 ) {
     Box(
         modifier = modifier
@@ -34,6 +34,12 @@ fun RequestPermissionContent(
         )
     }
     LaunchedEffect(permissionRequestLauncher) {
-        permissionRequestLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        permissionRequestLauncher.launch(
+            arrayOf(
+                Manifest.permission.RECORD_AUDIO,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+            )
+        )
     }
 }

@@ -33,8 +33,8 @@ fun RootContent(
     keepSplashScreen: (Boolean) -> Unit = {},
 ) {
     val permissionRequestLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {
-            if (it) {
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+            if (it.all { permission -> permission.value }) {
                 component.rootStore.dispatchIntent(RootStore.Intent.PermissionsGranted)
             } else {
                 component.rootStore.dispatchIntent(RootStore.Intent.PermissionsDenied)
@@ -79,7 +79,13 @@ fun RootContent(
         RootStore.State.Progress -> {
             keepSplashScreen(true)
             Launched {
-                permissionRequestLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                permissionRequestLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.RECORD_AUDIO,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                    )
+                )
             }
         }
     }
