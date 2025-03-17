@@ -3,15 +3,41 @@
 
 #include <memory>
 #include "Equalizer.h"
+#include "Effect.h"
 #include "Log.h"
+#include "Recorder.h"
 
 class FullDuplexPass : public oboe::FullDuplexStream {
 public:
-
-    bool leftChannelEnabled = true;
-    bool rightChannelEnabled = true;
-    float amplitude = 0.0f;
+    FullDuplexPass() {
+        recorder = std::make_unique<Recorder>();
+    }
+    std::shared_ptr<std::vector<Effect *>> effects;
     std::unique_ptr<Equalizer> equalizer;
+
+    std::function<void(std::vector<float>)> onAudioDataReady;
+
+    std::unique_ptr<Recorder> recorder;
+    bool isRecording = false;
+
+    void setRecording(bool enable) {
+        if (enable && !isRecording) {
+            int sampleRate = getInputStream()->getSampleRate();
+            int numChannels = getInputStream()->getChannelCount();
+            if (recorder->startRecording(sampleRate, numChannels)) {
+                isRecording = true;
+            }
+        } else if (!enable && isRecording) {
+            recorder->close();
+            isRecording = false;
+        }
+    }
+
+    void clearRecordings() {
+        if(!isRecording) {
+            recorder->clear();
+        }
+    }
 
     void
     initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
@@ -34,19 +60,21 @@ public:
         int32_t numOutputSamples = numOutputFrames * samplesPerFrame;
 
         int32_t samplesToProcess = std::min(numInputSamples, numOutputSamples);
+        std::vector<float> waveform;
         for (int32_t i = 0; i < samplesToProcess; i += 2) {
             int16_t frame[2] = {*input, *(input + 1)};
             input += 2;
+
             auto processOut = processFrame(frame);
-            if (leftChannelEnabled) {
-                *output++ = processOut[0];
-            } else {
-                *output++ = 0;
-            }
-            if (rightChannelEnabled) {
-                *output++ = processOut[1];
-            } else {
-                *output++ = 0;
+
+            waveform.push_back(static_cast<float>(processOut[0]) / SHRT_MAX);
+            waveform.push_back(static_cast<float>(processOut[1]) / SHRT_MAX);
+
+            *output++ = processOut[0];
+            *output++ = processOut[1];
+
+            if (isRecording && recorder) {
+                recorder->writeFrame(processOut);
             }
         }
 
@@ -54,28 +82,23 @@ public:
         for (int32_t i = 0; i < samplesLeft; i++) {
             *output++ = 0;
         }
-
+        if (onAudioDataReady) {
+            onAudioDataReady(waveform);
+        }
         return oboe::DataCallbackResult::Continue;
     }
 
 private:
     int16_t *processFrame(int16_t frame[2]) const {
+        for (Effect *effect: *effects) {
+            if (effect) {
+                effect->process(frame);
+            }
+        }
         if (equalizer) {
             equalizer->process(frame);
         }
-        applyGain(frame);
         return frame;
-    }
-
-    void applyGain(int16_t *frame) const {
-        float A = pow(10, amplitude / 20.0f);
-        for (int i = 0; i < 2; ++i) {
-            int32_t sample = static_cast<int32_t>(frame[i]);
-            sample = sample * A;
-            if (sample > SHRT_MAX) sample = SHRT_MAX;
-            if (sample < SHRT_MIN) sample = SHRT_MIN;
-            frame[i] = static_cast<int16_t>(sample);
-        }
     }
 };
 

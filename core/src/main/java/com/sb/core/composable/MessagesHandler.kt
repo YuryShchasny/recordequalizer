@@ -13,20 +13,20 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 
 @Composable
-fun <T> ErrorHandler(
-    errorFlow: SharedFlow<T>,
-    errorMessageProvider: @Composable (T?) -> String?
+fun <T> MessagesHandler(
+    messageFlow: SharedFlow<T>,
+    messageStringProvider: @Composable (T?) -> String?
 ) {
-    var error by remember { mutableStateOf<T?>(null) }
+    var message by remember { mutableStateOf<T?>(null) }
     val scope = rememberCoroutineScope()
-    error?.let {
-        Toast.makeText(LocalContext.current, errorMessageProvider(it), Toast.LENGTH_SHORT).show()
-        error = null
+    message?.let {
+        Toast.makeText(LocalContext.current, messageStringProvider(it), Toast.LENGTH_SHORT).show()
+        message = null
     }
     LaunchedEffect(Unit) {
         scope.launch {
-            errorFlow.collect {
-                error = it
+            messageFlow.collect {
+                message = it
             }
         }
     }

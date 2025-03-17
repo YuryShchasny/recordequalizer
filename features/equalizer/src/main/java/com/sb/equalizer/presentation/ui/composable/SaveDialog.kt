@@ -77,7 +77,7 @@ fun SaveDialog(
                             .height(32.dp)
                             .border(
                                 width = 1.dp,
-                                color = if (hasError) AppRes.colors.error else AppRes.colors.primary,
+                                color = if (hasError) AppRes.colors.red else AppRes.colors.primary,
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .padding(horizontal = 8.dp),
@@ -122,7 +122,7 @@ fun SaveDialog(
                             text = AppRes.strings.profileExists,
                             style = AppRes.type.gilroy,
                             fontSize = 10.sp,
-                            color = AppRes.colors.error,
+                            color = AppRes.colors.red,
                         )
                     }
                     Spacer(Modifier.height(20.dp))

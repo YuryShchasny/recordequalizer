@@ -20,13 +20,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sb.core.composable.ClickableIcon
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
+import com.sb.core.resources.theme.ColorUiType
+import com.sb.core.resources.theme.EqualizerTheme
+import com.sb.domain.entity.Profile
 import com.sb.equalizer.presentation.component.EqualizerComponent
 import com.sb.equalizer.presentation.component.EqualizerStore
 import com.sb.equalizer.presentation.ui.composable.ChannelCheckboxes
+import com.sb.equalizer.presentation.ui.composable.CompressorEffect
 import com.sb.equalizer.presentation.ui.composable.Equalizer
 import com.sb.equalizer.presentation.ui.composable.GainAmplitude
 import com.sb.equalizer.presentation.ui.composable.ProfilesDropDownMenu
@@ -76,11 +81,14 @@ private fun EqualizerScreenContent(
                     amplitude = state.amplitude,
                     gains = state.frequencies.map { it.second },
                     leftChannel = state.leftChannelEnabled,
-                    rightChannel = state.rightChannelEnabled
+                    rightChannel = state.rightChannelEnabled,
+                    compressorEnabled = state.compressorEnabled
                 )
                 val weight by animateFloatAsState(targetValue = if (hasDifference) 0.9f else 1f)
                 ProfilesDropDownMenu(
-                    modifier = Modifier.fillMaxWidth(weight).animateContentSize(),
+                    modifier = Modifier
+                        .fillMaxWidth(weight)
+                        .animateContentSize(),
                     selectedProfile = state.selectedProfile,
                     list = state.profiles.filter { it.id != state.selectedProfile.id },
                     onSelected = { dispatchIntent(EqualizerStore.Intent.ChangeProfile(it)) },
@@ -125,6 +133,40 @@ private fun EqualizerScreenContent(
                 onLeftChannelChanged = { dispatchIntent(EqualizerStore.Intent.ChangeLeftChannel(it)) },
                 onRightChannelChanged = { dispatchIntent(EqualizerStore.Intent.ChangeRightChannel(it)) }
             )
+            CompressorEffect(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                enabled = state.compressorEnabled,
+                onCheckedChanged = { dispatchIntent(EqualizerStore.Intent.EnableCompressor(it)) },
+            )
         }
+    }
+}
+
+@Preview
+@Composable
+fun EqualizerContentPreview(modifier: Modifier = Modifier) {
+    EqualizerTheme(colorUiType = ColorUiType.DARK) {
+        EqualizerScreenContent(
+            state = EqualizerStore.State(
+                selectedProfile = Profile(
+                    id = 0,
+                    name = "",
+                    gains = listOf(),
+                    amplitude = 0f,
+                    leftChannel = false,
+                    rightChannel = true,
+                    compressorEnabled = true
+                ),
+                frequencies = listOf(),
+                amplitude = 0f,
+                leftChannelEnabled = false,
+                rightChannelEnabled = true,
+                profiles = listOf(),
+                compressorEnabled = true
+            ),
+            dispatchIntent = {}
+        )
     }
 }

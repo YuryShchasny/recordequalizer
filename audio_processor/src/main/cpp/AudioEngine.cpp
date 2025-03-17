@@ -1,37 +1,28 @@
 #include <cassert>
+#include <utility>
 #include "Log.h"
 #include "AudioEngine.h"
 
 using namespace oboe;
 
-AudioEngine::AudioEngine() = default;
+AudioEngine::AudioEngine() {
+    mAmplitudeEffect = new AmplitudeEffect(0.0f);
+    mCompressEffect = new CompressEffect(-10.0f, 4.0f);
+    mChannelsEffect = new ChannelsEffect(false, false);
+    mEffects->push_back(mAmplitudeEffect);
+    mEffects->push_back(mChannelsEffect);
+}
 
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     mRecordingDeviceId = deviceId;
-    if (isPlaying()) {
-        Result result;
-        result = closeStreams();
-        result = openStreams();
-        if (result == Result::OK) {
-            mIsPlaying = true;
-        }
-    }
 }
 
 void AudioEngine::setPlaybackDeviceId(int32_t deviceId) {
     mPlaybackDeviceId = deviceId;
-    if (isPlaying()) {
-        Result result;
-        result = closeStreams();
-        result = openStreams();
-        if (result == Result::OK) {
-            mIsPlaying = true;
-        }
-    }
 }
 
-void AudioEngine::play() {
-    bool success = openStreams() == Result::OK;
+void AudioEngine::play(bool withRecord) {
+    bool success = openStreams(withRecord) == Result::OK;
     if (success) {
         mIsPlaying = true;
     } else {
@@ -40,8 +31,23 @@ void AudioEngine::play() {
 }
 
 void AudioEngine::stop() {
+    if (mDuplexStream) {
+        mDuplexStream->setRecording(false);
+    }
     closeStreams();
     mIsPlaying = false;
+}
+
+void AudioEngine::destroy() {
+    if (mDuplexStream) {
+        mDuplexStream->setRecording(false);
+        mDuplexStream->clearRecordings();
+    }
+    closeStreams();
+    mIsPlaying = false;
+    for (Effect *effect: *mEffects) {
+        delete effect;
+    }
 }
 
 bool AudioEngine::isPlaying() const {
@@ -52,14 +58,16 @@ Result AudioEngine::closeStreams() {
     Result result;
     if (mDuplexStream) {
         result = mDuplexStream->stop();
+        if (result != Result::OK) return result;
     }
     result = closeStream(mPlayStream);
+    if (result != Result::OK) return result;
     result = closeStream(mRecordingStream);
     mDuplexStream.reset();
     return result;
 }
 
-Result AudioEngine::openStreams() {
+Result AudioEngine::openStreams(bool withRecording) {
     AudioStreamBuilder inBuilder, outBuilder;
     setupPlaybackStreamParameters(&outBuilder);
     Result result = outBuilder.openStream(mPlayStream);
@@ -87,9 +95,13 @@ Result AudioEngine::openStreams() {
     if (mFrequenciesSize > 0) {
         mDuplexStream->initEqualizer(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
     }
-    mDuplexStream->amplitude = mAmplitude;
-    mDuplexStream->leftChannelEnabled = mLeftChannel;
-    mDuplexStream->rightChannelEnabled = mRightChannel;
+    if (mOnAudioReadyCallback) {
+        mDuplexStream->onAudioDataReady = std::move(mOnAudioReadyCallback);
+    }
+    mDuplexStream->effects = mEffects;
+    if (withRecording) {
+        mDuplexStream->setRecording(true);
+    }
     mDuplexStream->start();
     return result;
 }
@@ -170,24 +182,17 @@ void AudioEngine::onErrorAfterClose(oboe::AudioStream *oboeStream,
          oboe::convertToText(error));
 
     closeStreams();
-
-    if (error == oboe::Result::ErrorDisconnected) {
-        LOGD("Restarting AudioStream");
-        openStreams();
-    }
 }
 
 void AudioEngine::changeLeftChannel(bool enabled) {
-    mLeftChannel = enabled;
-    if (mDuplexStream) {
-        mDuplexStream->leftChannelEnabled = enabled;
+    if (mChannelsEffect) {
+        mChannelsEffect->setMute(Channel::LEFT, !enabled);
     }
 }
 
 void AudioEngine::changeRightChannel(bool enabled) {
-    mRightChannel = enabled;
-    if (mDuplexStream) {
-        mDuplexStream->rightChannelEnabled = enabled;
+    if (mChannelsEffect) {
+        mChannelsEffect->setMute(Channel::RIGHT, !enabled);
     }
 }
 
@@ -218,8 +223,30 @@ void AudioEngine::setFrequencyGains(float *frequencyGains) {
 }
 
 void AudioEngine::setAmplitude(float gain) {
-    mAmplitude = gain;
+    if (mAmplitudeEffect) {
+        mAmplitudeEffect->setAmplitude(gain);
+    }
+}
+
+void AudioEngine::setAudioDataCallback(std::function<void(std::vector<float>)> callback) {
+    mOnAudioReadyCallback = callback;
     if (mDuplexStream) {
-        mDuplexStream->amplitude = gain;
+        mDuplexStream->onAudioDataReady = std::move(callback);
+    }
+}
+
+void AudioEngine::enableCompressor(bool enabled) {
+    if (enabled) {
+        bool hasCompressor = std::any_of(mEffects->begin(), mEffects->end(), [](Effect *effect) {
+            return typeid(*effect) == typeid(CompressEffect);
+        });
+        if (!hasCompressor) {
+            mEffects->insert(mEffects->begin(), mCompressEffect);
+        }
+    } else {
+        auto it = std::find(mEffects->begin(), mEffects->end(), mCompressEffect);
+        if (it != mEffects->end()) {
+            mEffects->erase(it);
+        }
     }
 }

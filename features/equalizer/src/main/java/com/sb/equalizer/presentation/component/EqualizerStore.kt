@@ -5,9 +5,12 @@ import com.sb.audio_processor.AudioEngine
 import com.sb.core.base.BaseStore
 import com.sb.domain.entity.Profile
 import com.sb.domain.repository.ProfilesRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import org.koin.core.component.inject
 
 
@@ -87,7 +90,8 @@ class EqualizerStore : BaseStore() {
                             gains = state.frequencies.map { it.second },
                             amplitude = state.amplitude,
                             leftChannel = state.leftChannelEnabled,
-                            rightChannel = state.rightChannelEnabled
+                            rightChannel = state.rightChannelEnabled,
+                            compressorEnabled = state.compressorEnabled,
                         )
                         profilesRepository.addProfile(newProfile)
                         val profiles = profilesRepository.getProfiles()
@@ -110,7 +114,26 @@ class EqualizerStore : BaseStore() {
                     }
                 }
             }
+
+            is Intent.EnableCompressor -> {
+                launchIO {
+                    _uiState.update {
+                        it?.copy(
+                            compressorEnabled = intent.enabled
+                        )
+                    }
+                    audioEngine.enableCompressor(intent.enabled)
+                }
+            }
         }
+    }
+
+    override fun onDestroy() {
+        CoroutineScope(Dispatchers.Main).launch {
+            val profile = profilesRepository.getSelectedProfile()
+            profile?.let { audioEngine.setProfile(it) }
+        }
+        super.onDestroy()
     }
 
     private suspend fun updateSelectedProfile(profile: Profile) {
@@ -125,6 +148,7 @@ class EqualizerStore : BaseStore() {
                 frequencies = frequencies,
                 leftChannelEnabled = profile.leftChannel,
                 rightChannelEnabled = profile.rightChannel,
+                compressorEnabled = profile.compressorEnabled
             )
         }
         audioEngine.setProfile(profile)
@@ -138,6 +162,7 @@ class EqualizerStore : BaseStore() {
         val amplitude: Float,
         val leftChannelEnabled: Boolean,
         val rightChannelEnabled: Boolean,
+        val compressorEnabled: Boolean,
     )
 
     sealed interface Intent {
@@ -146,6 +171,7 @@ class EqualizerStore : BaseStore() {
         data class ChangeRightChannel(val enabled: Boolean) : Intent
         data class FrequencyGainChanged(val frequency: Int, val value: Float) : Intent
         data class AmplitudeGainChanged(val value: Float) : Intent
+        data class EnableCompressor(val enabled: Boolean) : Intent
         data class SaveNewProfile(val name: String) : Intent
         data class DeleteProfile(val profile: Profile) : Intent
     }

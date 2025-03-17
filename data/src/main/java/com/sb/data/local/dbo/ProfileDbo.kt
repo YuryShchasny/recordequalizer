@@ -12,4 +12,5 @@ data class ProfileDbo(
     val amplitude: Float,
     val leftChannel: Boolean,
     val rightChannel: Boolean,
+    val compressorEnabled: Boolean,
 )
