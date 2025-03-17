@@ -51,9 +51,7 @@ class HomeStore : BaseStore() {
     init {
         val mAudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
         val inputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
-            .filter { it.type == AudioDeviceInfo.TYPE_BUILTIN_MIC && it.address != "back" }
         val outputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-            .filter { it.type != AudioDeviceInfo.TYPE_TELEPHONY }
         launchIO {
             _uiState.update {
                 State(
@@ -97,22 +95,30 @@ class HomeStore : BaseStore() {
         when (intent) {
             is Intent.SelectInputDevice -> {
                 launchIO {
-                    audioEngine.setInputDevice(intent.deviceInfo.id)
-                    _uiState.update {
-                        it?.copy(
-                            selectedInputDevice = intent.deviceInfo
-                        )
+                    if (audioEngine.audioIsPlaying()) {
+                        _messages.emit(Messages.SelectDeviceError)
+                    } else {
+                        audioEngine.setInputDevice(intent.deviceInfo.id)
+                        _uiState.update {
+                            it?.copy(
+                                selectedInputDevice = intent.deviceInfo
+                            )
+                        }
                     }
                 }
             }
 
             is Intent.SelectOutputDevice -> {
                 launchIO {
-                    audioEngine.setOutputDevice(intent.deviceInfo.id)
-                    _uiState.update {
-                        it?.copy(
-                            selectedOutputDevice = intent.deviceInfo
-                        )
+                    if (audioEngine.audioIsPlaying()) {
+                        _messages.emit(Messages.SelectDeviceError)
+                    } else {
+                        audioEngine.setOutputDevice(intent.deviceInfo.id)
+                        _uiState.update {
+                            it?.copy(
+                                selectedOutputDevice = intent.deviceInfo
+                            )
+                        }
                     }
                 }
             }
@@ -155,7 +161,11 @@ class HomeStore : BaseStore() {
 
     private suspend fun play(withRecord: Boolean): Boolean {
         return try {
-            audioEngine.playAudio(withRecord)
+            val result = audioEngine.playAudio(withRecord)
+            if (!result) {
+                _messages.emit(Messages.PlayError)
+            }
+            result
         } catch (e: Throwable) {
             _messages.emit(Messages.PlayError)
             _uiState.update {
@@ -239,7 +249,8 @@ class HomeStore : BaseStore() {
 
     sealed interface Messages {
         data object PlayError : Messages
-        data object SaveRecordSuccess: Messages
-        data object SaveRecordError: Messages
+        data object SaveRecordSuccess : Messages
+        data object SaveRecordError : Messages
+        data object SelectDeviceError : Messages
     }
 }
