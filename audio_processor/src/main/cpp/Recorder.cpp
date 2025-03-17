@@ -1,14 +1,21 @@
 #include "Recorder.h"
 #include "Log.h"
 
-Recorder::Recorder() {}
+namespace fs = std::filesystem;
+
+const std::string FILES_DIR = "/data/data/com.sb.recordequalizer/files/records/";
+
+Recorder::Recorder() = default;
 
 bool Recorder::startRecording(int sampleRate, int numChannels) {
     if (isRecording) return false;
 
     this->sampleRate = sampleRate;
     this->numChannels = numChannels;
-    std::string filePath = "/data/data/com.sb.recordequalizer/files/" + getCurrentDateTime();
+    if (!fs::exists(FILES_DIR)) {
+        fs::create_directory(FILES_DIR);
+    }
+    std::string filePath = FILES_DIR + getCurrentDateTime() + ".wav";
     outputFile.open(filePath, std::ios::binary);
     if (!outputFile.is_open()) {
         return false;
@@ -32,6 +39,10 @@ void Recorder::writeFrame(const int16_t *frameData) {
         outputFile.write(reinterpret_cast<const char *>(frameData), size);
         dataSize += size;
     }
+}
+
+void Recorder::clear() {
+    fs::remove_all(FILES_DIR);
 }
 
 void Recorder::writeWavHeader() {

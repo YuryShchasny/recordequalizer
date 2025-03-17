@@ -25,6 +25,7 @@ import com.sb.core.resources.AppRes
 fun RecordButton(
     isPlaying: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     HomeButton(
         modifier = Modifier

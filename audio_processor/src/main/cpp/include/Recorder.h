@@ -15,6 +15,8 @@ public:
 
     void writeFrame(const int16_t *frameData);
 
+    void clear();
+
 private:
     std::ofstream outputFile;
     int sampleRate = 44100;

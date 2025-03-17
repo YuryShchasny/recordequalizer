@@ -1,8 +1,13 @@
 package com.sb.home.presentation.component
 
+import android.content.ContentValues
 import android.content.Context
 import android.media.AudioDeviceInfo
 import android.media.AudioManager
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.webkit.MimeTypeMap
 import androidx.compose.runtime.Immutable
 import com.sb.audio_processor.AudioEngine
 import com.sb.audio_processor.JNICallback
@@ -15,7 +20,10 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import org.koin.core.component.inject
+import java.io.File
+import java.io.FileInputStream
 import kotlin.math.abs
+
 
 class HomeStore : BaseStore() {
 
@@ -26,8 +34,8 @@ class HomeStore : BaseStore() {
     private var _uiState = MutableStateFlow<State?>(null)
     val state = _uiState.asStateFlow()
 
-    private var _error = MutableSharedFlow<Error>()
-    val error = _error.asSharedFlow()
+    private var _messages = MutableSharedFlow<Messages>()
+    val messages = _messages.asSharedFlow()
 
     private var listenerJob: Job? = null
     private var buffer = mutableListOf<Float>()
@@ -89,42 +97,22 @@ class HomeStore : BaseStore() {
         when (intent) {
             is Intent.SelectInputDevice -> {
                 launchIO {
-                    try {
-                        audioEngine.setInputDevice(intent.deviceInfo.id)
-                        _uiState.update {
-                            it?.copy(
-                                selectedInputDevice = intent.deviceInfo
-                            )
-                        }
-                    } catch (e: Throwable) {
-                        _error.emit(Error.SelectDeviceError)
-                        _uiState.update {
-                            it?.copy(
-                                playing = false
-                            )
-                        }
-                        e.printStackTrace()
+                    audioEngine.setInputDevice(intent.deviceInfo.id)
+                    _uiState.update {
+                        it?.copy(
+                            selectedInputDevice = intent.deviceInfo
+                        )
                     }
                 }
             }
 
             is Intent.SelectOutputDevice -> {
                 launchIO {
-                    try {
-                        audioEngine.setOutputDevice(intent.deviceInfo.id)
-                        _uiState.update {
-                            it?.copy(
-                                selectedOutputDevice = intent.deviceInfo
-                            )
-                        }
-                    } catch (e: Throwable) {
-                        _error.emit(Error.SelectDeviceError)
-                        _uiState.update {
-                            it?.copy(
-                                playing = false
-                            )
-                        }
-                        e.printStackTrace()
+                    audioEngine.setOutputDevice(intent.deviceInfo.id)
+                    _uiState.update {
+                        it?.copy(
+                            selectedOutputDevice = intent.deviceInfo
+                        )
                     }
                 }
             }
@@ -134,7 +122,7 @@ class HomeStore : BaseStore() {
                     val result = if (audioEngine.audioIsPlaying()) {
                         audioEngine.pauseAudio()
                     } else {
-                        audioEngine.playAudio(false)
+                        play(false)
                     }
                     _uiState.update {
                         it?.copy(
@@ -148,9 +136,11 @@ class HomeStore : BaseStore() {
             Intent.RecordClick -> {
                 launchIO {
                     val result = if (audioEngine.audioIsPlaying()) {
-                        audioEngine.pauseAudio()
+                        val pauseResult = audioEngine.pauseAudio()
+                        saveRecord()
+                        pauseResult
                     } else {
-                        audioEngine.playAudio(true)
+                        play(true)
                     }
                     _uiState.update {
                         it?.copy(
@@ -158,6 +148,72 @@ class HomeStore : BaseStore() {
                             recordMode = true
                         )
                     }
+                }
+            }
+        }
+    }
+
+    private suspend fun play(withRecord: Boolean): Boolean {
+        return try {
+            audioEngine.playAudio(withRecord)
+        } catch (e: Throwable) {
+            _messages.emit(Messages.PlayError)
+            _uiState.update {
+                it?.copy(
+                    playing = false
+                )
+            }
+            e.printStackTrace()
+            false
+        }
+    }
+
+    private fun saveRecord() {
+        val internalDir = File(context.filesDir, "records")
+        val externalDir =
+            File(Environment.getExternalStorageDirectory(), "Recordings/RecordEqualizer")
+        if (!externalDir.exists()) {
+            externalDir.mkdirs()
+        }
+        if (internalDir.exists() && internalDir.isDirectory) {
+            internalDir.listFiles()?.forEach { file ->
+                val newFile = File(externalDir, file.name)
+                try {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        copyFileToPublicDir(file, newFile)
+                    } else {
+                        file.copyTo(newFile, overwrite = true)
+                    }
+                    file.delete()
+                    launchMain {
+                        _messages.emit(Messages.SaveRecordSuccess)
+                    }
+                } catch (e: Exception) {
+                    launchMain {
+                        _messages.emit(Messages.SaveRecordError)
+                    }
+                    e.printStackTrace()
+                }
+            }
+        }
+    }
+
+    private fun copyFileToPublicDir(sourceFile: File, newFile: File) {
+        val extension = sourceFile.extension.lowercase()
+        val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
+        val resolver = context.contentResolver
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, newFile.name)
+            put(MediaStore.MediaColumns.MIME_TYPE, mime ?: "audio/wav")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, "Recordings/RecordEqualizer/")
+        }
+
+        val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { outputStream ->
+                FileInputStream(sourceFile).use { inputStream ->
+                    inputStream.copyTo(outputStream)
                 }
             }
         }
@@ -181,7 +237,9 @@ class HomeStore : BaseStore() {
         data class SelectOutputDevice(val deviceInfo: AudioDeviceInfo) : Intent
     }
 
-    sealed interface Error {
-        data object SelectDeviceError : Error
+    sealed interface Messages {
+        data object PlayError : Messages
+        data object SaveRecordSuccess: Messages
+        data object SaveRecordError: Messages
     }
 }

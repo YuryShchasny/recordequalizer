@@ -33,6 +33,12 @@ public:
         }
     }
 
+    void clearRecordings() {
+        if(!isRecording) {
+            recorder->clear();
+        }
+    }
+
     void
     initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
         equalizer = std::make_unique<Equalizer>();

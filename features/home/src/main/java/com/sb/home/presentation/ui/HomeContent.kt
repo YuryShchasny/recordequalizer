@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sb.core.composable.ClickableIcon
-import com.sb.core.composable.ErrorHandler
+import com.sb.core.composable.MessagesHandler
 import com.sb.core.composable.Launched
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
@@ -54,12 +54,14 @@ fun HomeContent(
             component.homeStore.initListener()
         }
     } ?: Loading()
-    ErrorHandler(
-        errorFlow = component.homeStore.error,
-        errorMessageProvider = {
+    MessagesHandler(
+        messageFlow = component.homeStore.messages,
+        messageStringProvider = {
             when (it) {
-                HomeStore.Error.SelectDeviceError -> AppRes.strings.errorSelectDevice
                 null -> null
+                HomeStore.Messages.PlayError -> AppRes.strings.errorPlay
+                HomeStore.Messages.SaveRecordError -> AppRes.strings.saveRecordError
+                HomeStore.Messages.SaveRecordSuccess -> AppRes.strings.saveRecordSuccess
             }
         }
     )
@@ -132,7 +134,7 @@ private fun HomeScreenContent(
                     .fillMaxWidth()
                     .height(300.dp),
                 amplitudes = state.streamAmplitudes,
-                scale = 12f
+                scale = 15f
             )
             Box(
                 modifier = Modifier
@@ -140,7 +142,6 @@ private fun HomeScreenContent(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-
                 AnimatedContent(
                     targetState = state.playing
                 ) { isPlaying ->

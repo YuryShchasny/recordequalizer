@@ -19,12 +19,15 @@ data class AppStrings(
     val newProfileName: String,
     val saveNewProfile: String,
     val profileExists: String,
-    val errorSelectDevice: String,
+    val errorPlay: String,
     val compressorEffect: String,
     val stopListening: String,
     val stopRecording: String,
     val startListening: String,
     val startRecording: String,
+    val myFolder: String,
+    val saveRecordError: String,
+    val saveRecordSuccess: String,
 )
 
 internal val russianAppStrings = AppStrings(
@@ -42,12 +45,15 @@ internal val russianAppStrings = AppStrings(
     newProfileName = "Название нового профиля",
     saveNewProfile = "Сохранить новый профиль",
     profileExists = "Данный профиль уже существует, измените название",
-    errorSelectDevice = "Не удалось выбрать устройство",
+    errorPlay = "Ошибка при запуске. Попробуйте еще раз.",
     compressorEffect = "Эффект компрессии",
     stopListening = "Остановить прослушивание",
     stopRecording = "Остановить запись",
     startRecording = "Начать запись",
-    startListening = "Начать просушивание"
+    startListening = "Начать просушивание",
+    myFolder = "Мои записи",
+    saveRecordError = "Не удалось сохранить запись",
+    saveRecordSuccess = "Запись сохранена в папке Recordings/RecordEqualizer"
 )
 
 internal val englishAppStrings = AppStrings(
@@ -65,12 +71,16 @@ internal val englishAppStrings = AppStrings(
     newProfileName = "New profile name",
     saveNewProfile = "Save new profile",
     profileExists = "This profile already exists, change the name",
-    errorSelectDevice = "Device selection failed",
+    errorPlay = "Error when starting. Try again.",
     compressorEffect = "Compression effect",
     stopListening = "Stop listening",
     stopRecording = "Stop recording",
     startListening = "Start listening",
-    startRecording = "Start recording"
+    startRecording = "Start recording",
+    myFolder = "My records",
+    saveRecordError = "Failed to save the record",
+        saveRecordSuccess = "Record is saved in the Recordings/RecordEqualizer folder"
+
 )
 
 val LocalAppStrings = staticCompositionLocalOf<AppStrings> {

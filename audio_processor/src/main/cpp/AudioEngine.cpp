@@ -15,30 +15,10 @@ AudioEngine::AudioEngine() {
 
 void AudioEngine::setRecordingDeviceId(int32_t deviceId) {
     mRecordingDeviceId = deviceId;
-    /* if (isPlaying()) {
-         Result result;
-         result = closeStreams();
-         if (result == Result::OK) {
-             result = openStreams();
-             if (result == Result::OK) {
-                 mIsPlaying = true;
-             }
-         }
-     }*/
 }
 
 void AudioEngine::setPlaybackDeviceId(int32_t deviceId) {
     mPlaybackDeviceId = deviceId;
-    /*if (isPlaying()) {
-        Result result;
-        result = closeStreams();
-        if (result == Result::OK) {
-            result = openStreams();
-            if (result == Result::OK) {
-                mIsPlaying = true;
-            }
-        }
-    }*/
 }
 
 void AudioEngine::play(bool withRecord) {
@@ -59,7 +39,12 @@ void AudioEngine::stop() {
 }
 
 void AudioEngine::destroy() {
-    stop();
+    if (mDuplexStream) {
+        mDuplexStream->setRecording(false);
+        mDuplexStream->clearRecordings();
+    }
+    closeStreams();
+    mIsPlaying = false;
     for (Effect *effect: *mEffects) {
         delete effect;
     }

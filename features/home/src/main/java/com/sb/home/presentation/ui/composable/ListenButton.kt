@@ -12,9 +12,10 @@ import com.sb.core.resources.AppRes
 fun ListenButton(
     isPlaying: Boolean,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     HomeButton(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(54.dp)
             .padding(horizontal = 16.dp),
