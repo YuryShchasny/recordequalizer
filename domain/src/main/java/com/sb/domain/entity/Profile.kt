@@ -7,16 +7,19 @@ data class Profile(
     val amplitude: Float,
     val leftChannel: Boolean,
     val rightChannel: Boolean,
+    val compressorEnabled: Boolean,
 ) {
     fun hasDifference(
         amplitude: Float,
         gains: List<Float>,
         leftChannel: Boolean,
         rightChannel: Boolean,
+        compressorEnabled: Boolean,
     ): Boolean {
         return this.gains != gains ||
                 this.amplitude != amplitude ||
                 this.leftChannel != leftChannel ||
-                this.rightChannel != rightChannel
+                this.rightChannel != rightChannel ||
+                this.compressorEnabled != compressorEnabled
     }
 }

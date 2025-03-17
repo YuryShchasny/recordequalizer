@@ -5,7 +5,7 @@ import com.sb.domain.entity.Profile
 interface AudioEngine {
     suspend fun onCreate()
     suspend fun onDestroy()
-    suspend fun playAudio(): Boolean
+    suspend fun playAudio(withRecord: Boolean): Boolean
     suspend fun pauseAudio(): Boolean
     suspend fun audioIsPlaying(): Boolean
     suspend fun setInputDevice(id: Int)
@@ -16,4 +16,6 @@ interface AudioEngine {
     suspend fun setAmplitudeGain(value: Float)
     suspend fun initEqualizer(profile: Profile, frequencies: List<Int>)
     suspend fun setProfile(profile: Profile)
+    suspend fun addAudioDataListener(callback: JNICallback)
+    suspend fun enableCompressor(enabled: Boolean)
 }

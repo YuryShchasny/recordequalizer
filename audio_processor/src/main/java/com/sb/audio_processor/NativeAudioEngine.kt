@@ -15,7 +15,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
 
     private external fun create(): Boolean
     private external fun delete()
-    private external fun play()
+    private external fun play(withRecord: Boolean)
     private external fun stop()
     private external fun isPlaying(): Boolean
     private external fun setRecordingDeviceId(deviceId: Int)
@@ -27,18 +27,24 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         frequencies: IntArray,
         gains: FloatArray,
         leftChannel: Boolean,
-        rightChannel: Boolean
+        rightChannel: Boolean,
+        compressorEnabled: Boolean,
     )
+
     private external fun nativeSetProfile(
         amplitude: Float,
         gains: FloatArray,
         leftChannel: Boolean,
-        rightChannel: Boolean
+        rightChannel: Boolean,
+        compressorEnabled: Boolean
     )
+
     private external fun nativeSetAmplitudeGain(gain: Float)
     private external fun nativeSetFrequencyGain(frequency: Int, gain: Float)
     private external fun nativeChangeLeftChannel(enabled: Boolean)
     private external fun nativeChangeRightChannel(enabled: Boolean)
+    private external fun nativeAddListener(callback: JNICallback)
+    private external fun nativeEnableCompressor(enabled: Boolean)
 
     init {
         setDefaultStreamValues(context)
@@ -56,10 +62,10 @@ class NativeAudioEngine(context: Context) : AudioEngine {
         }
     }
 
-    override suspend fun playAudio(): Boolean = withContext(Dispatchers.Default) {
+    override suspend fun playAudio(withRecord: Boolean): Boolean = withContext(Dispatchers.Default) {
         mutex.withLock {
             if (!isPlaying()) {
-                val job = launch { play() }
+                val job = launch { play(withRecord) }
                 job.join()
                 return@withContext isPlaying()
             }
@@ -129,6 +135,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
                     gains = profile.gains.toFloatArray(),
                     leftChannel = profile.leftChannel,
                     rightChannel = profile.rightChannel,
+                    compressorEnabled = profile.compressorEnabled
                 )
             }
         }
@@ -138,8 +145,22 @@ class NativeAudioEngine(context: Context) : AudioEngine {
             amplitude = profile.amplitude,
             gains = profile.gains.toFloatArray(),
             leftChannel = profile.leftChannel,
-            rightChannel = profile.rightChannel
+            rightChannel = profile.rightChannel,
+            compressorEnabled = profile.compressorEnabled
         )
+    }
+
+    override suspend fun addAudioDataListener(callback: JNICallback) =
+        withContext(Dispatchers.Default) {
+            mutex.withLock {
+                nativeAddListener(callback)
+            }
+        }
+
+    override suspend fun enableCompressor(enabled: Boolean) = withContext(Dispatchers.Default) {
+        mutex.withLock {
+            nativeEnableCompressor(enabled)
+        }
     }
 
     private fun setDefaultStreamValues(context: Context) {

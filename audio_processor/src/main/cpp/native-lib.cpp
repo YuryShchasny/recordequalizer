@@ -4,6 +4,9 @@
 
 static AudioEngine *engine = nullptr;
 
+static JavaVM *jvm = nullptr;
+static jclass storeListener = nullptr;
+
 extern "C" {
 JNIEXPORT jboolean JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_create(JNIEnv *env, jobject thiz) {
@@ -15,20 +18,28 @@ Java_com_sb_audio_1processor_NativeAudioEngine_create(JNIEnv *env, jobject thiz)
 
 JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_delete(JNIEnv *env, jobject thiz) {
+    if (storeListener != nullptr) {
+        env->DeleteGlobalRef(storeListener);
+        storeListener = nullptr;
+        LOGD("Listener removed successfully");
+    } else {
+        LOGD("No listener to remove");
+    }
     if (engine) {
-        engine->stop();
+        engine->destroy();
         delete engine;
         engine = nullptr;
     }
 }
 
 JNIEXPORT void JNICALL
-Java_com_sb_audio_1processor_NativeAudioEngine_play(JNIEnv *env, jobject thiz) {
+Java_com_sb_audio_1processor_NativeAudioEngine_play(JNIEnv *env, jobject thiz,
+                                                    jboolean withRecord) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling play method");
         return;
     }
-    engine->play();
+    engine->play(withRecord);
 }
 
 JNIEXPORT void JNICALL
@@ -102,7 +113,8 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
                                                                          jintArray frequencies,
                                                                          jfloatArray gains,
                                                                          jboolean leftChannel,
-                                                                         jboolean rightChannel) {
+                                                                         jboolean rightChannel,
+                                                                         jboolean compressorEnabled) {
     if (engine == nullptr) {
         LOGD("Engine is null, you must call createEngine before calling nativeInitializeEqualizer method");
         return;
@@ -113,6 +125,7 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeInitializeEqualizer(JNIEnv 
     engine->setAmplitude(amplitude);
     engine->changeLeftChannel(leftChannel);
     engine->changeRightChannel(rightChannel);
+    engine->enableCompressor(compressorEnabled);
 }
 
 JNIEXPORT void JNICALL
@@ -134,16 +147,71 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetAmplitudeGain(JNIEnv *en
     }
     engine->setAmplitude(gain);
 }
-}
-extern "C"
 JNIEXPORT void JNICALL
 Java_com_sb_audio_1processor_NativeAudioEngine_nativeSetProfile(JNIEnv *env, jobject thiz,
                                                                 jfloat amplitude, jfloatArray gains,
                                                                 jboolean leftChannel,
-                                                                jboolean rightChannel) {
+                                                                jboolean rightChannel,
+                                                                jboolean compressorEnabled) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling nativeSetProfile method");
+        return;
+    }
     jfloat *nativeGains = env->GetFloatArrayElements(gains, NULL);
     engine->setFrequencyGains(nativeGains);
     engine->setAmplitude(amplitude);
     engine->changeLeftChannel(leftChannel);
     engine->changeRightChannel(rightChannel);
+    engine->enableCompressor(compressorEnabled);
+}
+
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeAddListener(JNIEnv *env, jobject thiz,
+                                                                 jobject callback) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling nativeAddListener method");
+        return;
+    }
+    env->GetJavaVM(&jvm);
+    if (storeListener != nullptr) {
+        LOGD("Listener already exists");
+        return;
+    }
+    storeListener = static_cast<jclass>(env->NewGlobalRef(callback));
+    if (storeListener != nullptr) {
+        std::function<void(std::vector<float>)> onAudioDataReady = [&](
+                std::vector<float> waveform) {
+            JNIEnv *env;
+            bool didAttach = false;
+
+            if (jvm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
+                jvm->AttachCurrentThread(&env, nullptr);
+                didAttach = true;
+            }
+            jclass clazz = env->GetObjectClass(storeListener);
+            jmethodID storeMethod = env->GetMethodID(clazz, "onAudioDataReady", "([F)V");
+            if (!storeMethod) {
+                env->DeleteLocalRef(clazz);
+                if (didAttach) jvm->DetachCurrentThread();
+                return;
+            }
+            jfloatArray jData = env->NewFloatArray(waveform.size());
+            env->SetFloatArrayRegion(jData, 0, waveform.size(), waveform.data());
+            env->CallVoidMethod(storeListener, storeMethod, jData);
+            env->DeleteLocalRef(jData);
+            env->DeleteLocalRef(clazz);
+            if (didAttach) jvm->DetachCurrentThread();
+        };
+        engine->setAudioDataCallback(onAudioDataReady);
+    }
+}
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_nativeEnableCompressor(JNIEnv *env, jobject thiz,
+                                                                      jboolean enabled) {
+    if (engine == nullptr) {
+        LOGD("Engine is null, you must call createEngine before calling nativeEnableCompressor method");
+        return;
+    }
+    engine->enableCompressor(enabled);
+}
 }

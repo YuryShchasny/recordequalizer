@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -22,7 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.sb.core.composable.ClickableIcon
-import com.sb.core.composable.ErrorHandler
+import com.sb.core.composable.MessagesHandler
+import com.sb.core.composable.Launched
 import com.sb.core.composable.Loading
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.ColorUiType
@@ -30,6 +32,9 @@ import com.sb.core.resources.theme.EqualizerTheme
 import com.sb.home.presentation.component.HomeComponent
 import com.sb.home.presentation.component.HomeStore
 import com.sb.home.presentation.ui.composable.AudioDeviceDropDownMenu
+import com.sb.home.presentation.ui.composable.ListenButton
+import com.sb.home.presentation.ui.composable.RecordButton
+import com.sb.home.presentation.ui.composable.Waveform
 
 @Composable
 fun HomeContent(
@@ -45,13 +50,18 @@ fun HomeContent(
             onEqualizerIconClick = component::onEqualizerClick,
             onChangeThemeClick = component::onChangeThemeClick
         )
+        Launched {
+            component.homeStore.initListener()
+        }
     } ?: Loading()
-    ErrorHandler(
-        errorFlow = component.homeStore.error,
-        errorMessageProvider = {
-            when(it) {
-                HomeStore.Error.SelectDeviceError -> AppRes.strings.errorSelectDevice
+    MessagesHandler(
+        messageFlow = component.homeStore.messages,
+        messageStringProvider = {
+            when (it) {
                 null -> null
+                HomeStore.Messages.PlayError -> AppRes.strings.errorPlay
+                HomeStore.Messages.SaveRecordError -> AppRes.strings.saveRecordError
+                HomeStore.Messages.SaveRecordSuccess -> AppRes.strings.saveRecordSuccess
             }
         }
     )
@@ -119,15 +129,52 @@ private fun HomeScreenContent(
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )
             }
-            ClickableIcon(
+            Waveform(
                 modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .size(32.dp),
-                imageVector = if (state.playing) AppRes.icons.pause else AppRes.icons.play,
-                tint = AppRes.colors.primary,
-                rippleRadius = 24.dp,
-                onClick = { dispatchIntent(HomeStore.Intent.PlayPause) }
+                    .fillMaxWidth()
+                    .height(300.dp),
+                amplitudes = state.streamAmplitudes,
+                scale = 15f
             )
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                AnimatedContent(
+                    targetState = state.playing
+                ) { isPlaying ->
+                    if (isPlaying) {
+                        if (state.recordMode) {
+                            RecordButton(
+                                isPlaying = true,
+                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
+                            )
+                        } else {
+                            ListenButton(
+                                isPlaying = true,
+                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
+                            )
+                        }
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(20.dp),
+                        ) {
+                            ListenButton(
+                                isPlaying = false,
+                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
+                            )
+                            RecordButton(
+                                isPlaying = false,
+                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -137,7 +184,10 @@ private fun HomeScreenContent(
 private fun HomeScreenPreview() {
     EqualizerTheme(colorUiType = ColorUiType.DARK) {
         HomeScreenContent(
-            state = HomeStore.State(),
+            state = HomeStore.State(
+                playing = true,
+                recordMode = true
+            ),
             dispatchIntent = {},
             onEqualizerIconClick = {},
             onChangeThemeClick = {}
