@@ -62,6 +62,7 @@ fun HomeContent(
                 HomeStore.Messages.PlayError -> AppRes.strings.errorPlay
                 HomeStore.Messages.SaveRecordError -> AppRes.strings.saveRecordError
                 HomeStore.Messages.SaveRecordSuccess -> AppRes.strings.saveRecordSuccess
+                HomeStore.Messages.SelectDeviceError -> AppRes.strings.selectDeviceError
             }
         }
     )
