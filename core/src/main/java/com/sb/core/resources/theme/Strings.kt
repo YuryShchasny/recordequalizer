@@ -28,6 +28,7 @@ data class AppStrings(
     val myFolder: String,
     val saveRecordError: String,
     val saveRecordSuccess: String,
+    val selectDeviceError: String,
 )
 
 internal val russianAppStrings = AppStrings(
@@ -53,7 +54,8 @@ internal val russianAppStrings = AppStrings(
     startListening = "Начать просушивание",
     myFolder = "Мои записи",
     saveRecordError = "Не удалось сохранить запись",
-    saveRecordSuccess = "Запись сохранена в папке Recordings/RecordEqualizer"
+    saveRecordSuccess = "Запись сохранена в папке Recordings/RecordEqualizer",
+    selectDeviceError = "Остановите воспроизведение для смены устройства"
 )
 
 internal val englishAppStrings = AppStrings(
@@ -79,8 +81,8 @@ internal val englishAppStrings = AppStrings(
     startRecording = "Start recording",
     myFolder = "My records",
     saveRecordError = "Failed to save the record",
-        saveRecordSuccess = "Record is saved in the Recordings/RecordEqualizer folder"
-
+    saveRecordSuccess = "Record is saved in the Recordings/RecordEqualizer folder",
+    selectDeviceError = "Stop playing to change the device"
 )
 
 val LocalAppStrings = staticCompositionLocalOf<AppStrings> {
