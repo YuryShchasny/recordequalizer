@@ -208,7 +208,9 @@ void AudioEngine::setGain(int frequency, float gain) {
     for (int i = 0; i < mFrequenciesSize; ++i) {
         if (mFrequencies[i] == frequency) {
             mFrequencyGains[i] = gain;
-            mEqualizer->updateGain(i, mFrequencyGains[i]);
+            if(mEqualizer->isReady()) {
+                mEqualizer->updateGain(i, mFrequencyGains[i]);
+            }
         }
     }
 }
@@ -216,7 +218,9 @@ void AudioEngine::setGain(int frequency, float gain) {
 void AudioEngine::setFrequencyGains(float *frequencyGains) {
     for (int i = 0; i < mFrequenciesSize; ++i) {
         mFrequencyGains[i] = frequencyGains[i];
-        mEqualizer->updateGain(i, frequencyGains[i]);
+        if(mEqualizer->isReady()) {
+            mEqualizer->updateGain(i, frequencyGains[i]);
+        }
     }
 }
 

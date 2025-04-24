@@ -16,7 +16,10 @@ public:
 
     void updateGain(int index, float gain);
 
+    bool isReady() const;
+
 private:
+    bool mIsReady = false;
     int mSampleRate = 0;
     int mFrequenciesSize = 0;
     int *mFrequencies;
