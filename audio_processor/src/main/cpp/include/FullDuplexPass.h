@@ -13,7 +13,6 @@ public:
         recorder = std::make_unique<Recorder>();
     }
     std::shared_ptr<std::vector<Effect *>> effects;
-    std::unique_ptr<Equalizer> equalizer;
 
     std::function<void(std::vector<float>)> onAudioDataReady;
 
@@ -37,12 +36,6 @@ public:
         if(!isRecording) {
             recorder->clear();
         }
-    }
-
-    void
-    initEqualizer(int frequenciesSize, int *frequencies, float *frequencyGains, int sampleRate) {
-        equalizer = std::make_unique<Equalizer>();
-        equalizer->initialize(frequenciesSize, frequencies, frequencyGains, sampleRate);
     }
 
     virtual oboe::DataCallbackResult
@@ -94,9 +87,6 @@ private:
             if (effect) {
                 effect->process(frame);
             }
-        }
-        if (equalizer) {
-            equalizer->process(frame);
         }
         return frame;
     }

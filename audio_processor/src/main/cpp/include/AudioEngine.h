@@ -64,6 +64,7 @@ private:
     int *mFrequencies = {};
     float *mFrequencyGains = {};
     std::shared_ptr<std::vector<Effect *>> mEffects = std::make_shared<std::vector<Effect *>>();
+    Equalizer *mEqualizer;
     AmplitudeEffect *mAmplitudeEffect;
     ChannelsEffect *mChannelsEffect;
     CompressEffect *mCompressEffect;

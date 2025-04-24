@@ -4,14 +4,15 @@
 
 #include <memory>
 #include "BiQuadFilter.h"
+#include "Effect.h"
 
-class Equalizer {
+class Equalizer : public Effect {
 public:
     Equalizer() = default;
 
     void initialize(int frequenciesSize, const int *frequencies, const float *frequencyGains, int sampleRate);
 
-    void process(int16_t frame[2]);
+    void process(int16_t frame[2]) const override;
 
     void updateGain(int index, float gain);
 
