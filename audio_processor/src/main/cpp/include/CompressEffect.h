@@ -10,7 +10,7 @@ public:
     CompressEffect() = default;
 
     explicit CompressEffect(float threshold_dB, float ratio)
-            : mThreshold(std::pow(10.0f, threshold_dB / 20.0f)),
+            : mThreshold(std::pow(10.0f, threshold_dB / 20.0f) * SHRT_MAX),
               mRatio(ratio) {}
 
     void process(int16_t *frame) const override {
