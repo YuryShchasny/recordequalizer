@@ -1,8 +1,10 @@
 #include <jni.h>
 #include "AudioEngine.h"
 #include "Log.h"
+#include "TestEngine.h"
 
 static AudioEngine *engine = nullptr;
+static TestEngine *testEngine = nullptr;
 
 static JavaVM *jvm = nullptr;
 static jclass storeListener = nullptr;
@@ -213,5 +215,13 @@ Java_com_sb_audio_1processor_NativeAudioEngine_nativeEnableCompressor(JNIEnv *en
         return;
     }
     engine->enableCompressor(enabled);
+}
+JNIEXPORT void JNICALL
+Java_com_sb_audio_1processor_NativeAudioEngine_testFrequency(JNIEnv *env, jobject thiz,
+                                                             jint frequency) {
+    if (testEngine == nullptr) {
+        testEngine = new TestEngine();
+    }
+    testEngine->testFrequency(frequency);
 }
 }

@@ -31,6 +31,9 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         Equalizer.cpp
         BiQuadFilter.cpp
         Recorder.cpp
+        SinGenerator.cpp
+        EffectsGenerator.cpp
+        TestEngine.cpp
 )
 
 include_directories(include)

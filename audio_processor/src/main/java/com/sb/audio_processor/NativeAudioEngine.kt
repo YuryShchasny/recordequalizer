@@ -46,6 +46,8 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     private external fun nativeAddListener(callback: JNICallback)
     private external fun nativeEnableCompressor(enabled: Boolean)
 
+    private external fun testFrequency(frequency: Int)
+
     init {
         setDefaultStreamValues(context)
     }
@@ -53,6 +55,7 @@ class NativeAudioEngine(context: Context) : AudioEngine {
     override suspend fun onCreate() {
         mutex.withLock {
             create()
+            testFrequency(125)
         }
     }
 
