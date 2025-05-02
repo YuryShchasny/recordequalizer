@@ -20,7 +20,7 @@ void Equalizer::initialize(int frequenciesSize, const int *frequencies, const fl
 
 void Equalizer::process(int16_t *frame) const {
     for (int i = 0; i < 2; ++i) {
-        float sample = (float) frame[i] / 32768.0f;
+        float sample = static_cast<float>(frame[i]) / 32768.0f;
         for (int band = 0; band < mFrequenciesSize; ++band) {
             sample = mEqFilters[band].process(sample);
         }
