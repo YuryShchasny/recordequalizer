@@ -12,6 +12,7 @@ import androidx.compose.runtime.Immutable
 import com.sb.audio_processor.AudioEngine
 import com.sb.audio_processor.JNICallback
 import com.sb.core.base.BaseStore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import java.io.File
 import java.io.FileInputStream
@@ -178,35 +180,46 @@ class HomeStore : BaseStore() {
         }
     }
 
-    private fun saveRecord() {
-        val internalDir = File(context.filesDir, "records")
-        val externalDir =
-            File(Environment.getExternalStorageDirectory(), "Recordings/RecordEqualizer")
-        if (!externalDir.exists()) {
-            externalDir.mkdirs()
+    private suspend fun saveRecord() {
+        val directory =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_RECORDINGS)
+            } else {
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+            }
+        saveToPublicDirectory(File(directory, EXTERNAL_DIRECTORY))
+    }
+
+    private suspend fun saveToPublicDirectory(directory: File) {
+        val internalDir = File(context.filesDir, INTERNAL_DIRECTORY)
+        if (!directory.exists()) {
+            directory.mkdirs()
         }
         if (internalDir.exists() && internalDir.isDirectory) {
-            internalDir.listFiles()?.forEach { file ->
-                val newFile = File(externalDir, file.name)
-                try {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        copyFileToPublicDir(file, newFile)
-                    } else {
-                        file.copyTo(newFile, overwrite = true)
+            withContext(Dispatchers.IO) {
+                internalDir.listFiles()?.forEach { file ->
+                    val newFile = File(directory, file.name)
+                    try {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            copyFileToPublicDir(file, newFile)
+                        } else {
+                            file.copyTo(newFile, overwrite = true)
+                        }
+                        file.delete()
+                        launchMain {
+                            _messages.emit(Messages.SaveRecordSuccess(directory.path))
+                        }
+                    } catch (e: Exception) {
+                        launchMain {
+                            _messages.emit(Messages.SaveRecordError)
+                        }
+                        e.printStackTrace()
                     }
-                    file.delete()
-                    launchMain {
-                        _messages.emit(Messages.SaveRecordSuccess)
-                    }
-                } catch (e: Exception) {
-                    launchMain {
-                        _messages.emit(Messages.SaveRecordError)
-                    }
-                    e.printStackTrace()
                 }
             }
         }
     }
+
 
     private fun copyFileToPublicDir(sourceFile: File, newFile: File) {
         val extension = sourceFile.extension.lowercase()
@@ -214,8 +227,11 @@ class HomeStore : BaseStore() {
         val resolver = context.contentResolver
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, newFile.name)
-            put(MediaStore.MediaColumns.MIME_TYPE, mime ?: "audio/wav")
-            put(MediaStore.MediaColumns.RELATIVE_PATH, "Recordings/RecordEqualizer/")
+            put(MediaStore.MediaColumns.MIME_TYPE, mime ?: MIME_TYPE)
+            put(MediaStore.MediaColumns.RELATIVE_PATH,
+                newFile.path.substringBefore(EXTERNAL_DIRECTORY)
+                    .substringAfterLast('/') + EXTERNAL_DIRECTORY
+            )
         }
 
         val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, contentValues)
@@ -227,6 +243,12 @@ class HomeStore : BaseStore() {
                 }
             }
         }
+    }
+
+    companion object {
+        private const val INTERNAL_DIRECTORY = "records"
+        private const val EXTERNAL_DIRECTORY = "/RecordEqualizer/"
+        private const val MIME_TYPE = "audio/wav"
     }
 
     @Immutable
@@ -249,7 +271,7 @@ class HomeStore : BaseStore() {
 
     sealed interface Messages {
         data object PlayError : Messages
-        data object SaveRecordSuccess : Messages
+        data class SaveRecordSuccess(val path: String) : Messages
         data object SaveRecordError : Messages
         data object SelectDeviceError : Messages
     }

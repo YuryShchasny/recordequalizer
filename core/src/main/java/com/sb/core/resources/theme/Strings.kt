@@ -54,7 +54,7 @@ internal val russianAppStrings = AppStrings(
     startListening = "Начать просушивание",
     myFolder = "Мои записи",
     saveRecordError = "Не удалось сохранить запись",
-    saveRecordSuccess = "Запись сохранена в папке Recordings/RecordEqualizer",
+    saveRecordSuccess = "Запись сохранена по пути %s",
     selectDeviceError = "Остановите воспроизведение для смены устройства"
 )
 
