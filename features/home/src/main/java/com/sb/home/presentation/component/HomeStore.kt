@@ -51,17 +51,104 @@ class HomeStore : BaseStore() {
     }
 
     init {
-        val mAudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val inputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
-        val outputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-        launchIO {
+        launchMain {
+            val mAudioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val inputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
+            val outputDevices = mAudioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            setDevices(
+                inputDevices = inputDevices.toList(),
+                outputDevices = outputDevices.toList()
+            )
+            setListener()
+        }
+    }
+
+    fun initListener() {
+        launchMain {
+            audioEngine.addAudioDataListener(listener)
+        }
+    }
+
+    fun dispatchIntent(intent: Intent) {
+        launchMain {
+            when (intent) {
+                is Intent.SelectInputDevice -> selectInputDevice(intent.deviceInfo)
+                is Intent.SelectOutputDevice -> selectOutputDevice(intent.deviceInfo)
+                Intent.ListenClick -> startListening()
+                Intent.RecordClick -> startRecording()
+            }
+        }
+    }
+
+    private suspend fun startRecording() {
+        val result = if (audioEngine.audioIsPlaying()) {
+            val pauseResult = audioEngine.pauseAudio()
+            saveRecord()
+            pauseResult
+        } else {
+            play(true)
+        }
+        _uiState.update {
+            it?.copy(
+                playing = result,
+                recordMode = true
+            )
+        }
+    }
+
+    private suspend fun startListening() {
+        val result = if (audioEngine.audioIsPlaying()) {
+            audioEngine.pauseAudio()
+        } else {
+            play(false)
+        }
+        _uiState.update {
+            it?.copy(
+                playing = result,
+                recordMode = false
+            )
+        }
+    }
+
+    private suspend fun selectOutputDevice(deviceInfo: AudioDeviceInfo) {
+        if (audioEngine.audioIsPlaying()) {
+            _messages.emit(Messages.SelectDeviceError)
+        } else {
+            audioEngine.setOutputDevice(deviceInfo.id)
             _uiState.update {
-                State(
-                    inputDevices = inputDevices.toList(),
-                    outputDevices = outputDevices.toList()
+                it?.copy(
+                    selectedOutputDevice = deviceInfo
                 )
             }
         }
+    }
+
+    private suspend fun selectInputDevice(deviceInfo: AudioDeviceInfo) {
+        if (audioEngine.audioIsPlaying()) {
+            _messages.emit(Messages.SelectDeviceError)
+        } else {
+            audioEngine.setInputDevice(deviceInfo.id)
+            _uiState.update {
+                it?.copy(
+                    selectedInputDevice = deviceInfo
+                )
+            }
+        }
+    }
+
+    private fun setDevices(
+        inputDevices: List<AudioDeviceInfo>,
+        outputDevices: List<AudioDeviceInfo>
+    ) {
+        _uiState.update {
+            State(
+                inputDevices = inputDevices,
+                outputDevices = outputDevices
+            )
+        }
+    }
+
+    private fun setListener() {
         listenerJob = launchIO {
             while (true) {
                 delay(50)
@@ -80,80 +167,6 @@ class HomeStore : BaseStore() {
                     _uiState.update {
                         it?.copy(
                             streamAmplitudes = it.streamAmplitudes + listOfNotNull(0f)
-                        )
-                    }
-                }
-            }
-        }
-    }
-
-    fun initListener() {
-        launchMain {
-            audioEngine.addAudioDataListener(listener)
-        }
-    }
-
-    fun dispatchIntent(intent: Intent) {
-        when (intent) {
-            is Intent.SelectInputDevice -> {
-                launchIO {
-                    if (audioEngine.audioIsPlaying()) {
-                        _messages.emit(Messages.SelectDeviceError)
-                    } else {
-                        audioEngine.setInputDevice(intent.deviceInfo.id)
-                        _uiState.update {
-                            it?.copy(
-                                selectedInputDevice = intent.deviceInfo
-                            )
-                        }
-                    }
-                }
-            }
-
-            is Intent.SelectOutputDevice -> {
-                launchIO {
-                    if (audioEngine.audioIsPlaying()) {
-                        _messages.emit(Messages.SelectDeviceError)
-                    } else {
-                        audioEngine.setOutputDevice(intent.deviceInfo.id)
-                        _uiState.update {
-                            it?.copy(
-                                selectedOutputDevice = intent.deviceInfo
-                            )
-                        }
-                    }
-                }
-            }
-
-            Intent.ListenClick -> {
-                launchIO {
-                    val result = if (audioEngine.audioIsPlaying()) {
-                        audioEngine.pauseAudio()
-                    } else {
-                        play(false)
-                    }
-                    _uiState.update {
-                        it?.copy(
-                            playing = result,
-                            recordMode = false
-                        )
-                    }
-                }
-            }
-
-            Intent.RecordClick -> {
-                launchIO {
-                    val result = if (audioEngine.audioIsPlaying()) {
-                        val pauseResult = audioEngine.pauseAudio()
-                        saveRecord()
-                        pauseResult
-                    } else {
-                        play(true)
-                    }
-                    _uiState.update {
-                        it?.copy(
-                            playing = result,
-                            recordMode = true
                         )
                     }
                 }
@@ -220,7 +233,6 @@ class HomeStore : BaseStore() {
         }
     }
 
-
     private fun copyFileToPublicDir(sourceFile: File, newFile: File) {
         val extension = sourceFile.extension.lowercase()
         val mime = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension)
@@ -228,7 +240,8 @@ class HomeStore : BaseStore() {
         val contentValues = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, newFile.name)
             put(MediaStore.MediaColumns.MIME_TYPE, mime ?: MIME_TYPE)
-            put(MediaStore.MediaColumns.RELATIVE_PATH,
+            put(
+                MediaStore.MediaColumns.RELATIVE_PATH,
                 newFile.path.substringBefore(EXTERNAL_DIRECTORY)
                     .substringAfterLast('/') + EXTERNAL_DIRECTORY
             )
