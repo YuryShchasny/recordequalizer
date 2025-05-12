@@ -93,16 +93,17 @@ fun AudioDeviceDropDownMenu(
     }
 }
 
+@Composable
 private fun getAudioDeviceTypeString(audioDeviceType: Int): String {
     return when (audioDeviceType) {
-        AudioDeviceInfo.TYPE_BUILTIN_MIC -> "Микрофон"
-        AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> "Bluetooth устройство"
-        AudioDeviceInfo.TYPE_TELEPHONY -> "Телефонный приемник"
-        AudioDeviceInfo.TYPE_REMOTE_SUBMIX -> "Удаленный субмикс"
-        AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> "Динамик"
-        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> "Система динамиков"
-        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> "Bluetooth A2DP устройство"
-        else -> "Неизвестный тип"
+        AudioDeviceInfo.TYPE_BUILTIN_MIC -> AppRes.strings.mic
+        AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> AppRes.strings.bluetoothSco
+        AudioDeviceInfo.TYPE_TELEPHONY -> AppRes.strings.telephony
+        AudioDeviceInfo.TYPE_REMOTE_SUBMIX -> AppRes.strings.remoteSubmix
+        AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> AppRes.strings.builtinEarpiece
+        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> AppRes.strings.builtinSpeaker
+        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> AppRes.strings.bluetoothA2dp
+        else -> AppRes.strings.unknown
     }
 }
 

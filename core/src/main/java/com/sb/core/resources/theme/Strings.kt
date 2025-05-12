@@ -29,6 +29,14 @@ data class AppStrings(
     val saveRecordError: String,
     val saveRecordSuccess: String,
     val selectDeviceError: String,
+    val mic: String,
+    val bluetoothSco: String,
+    val telephony: String,
+    val remoteSubmix: String,
+    val builtinEarpiece: String,
+    val builtinSpeaker: String,
+    val bluetoothA2dp: String,
+    val unknown: String,
 )
 
 internal val russianAppStrings = AppStrings(
@@ -55,7 +63,15 @@ internal val russianAppStrings = AppStrings(
     myFolder = "Мои записи",
     saveRecordError = "Не удалось сохранить запись",
     saveRecordSuccess = "Запись сохранена по пути %s",
-    selectDeviceError = "Остановите воспроизведение для смены устройства"
+    selectDeviceError = "Остановите воспроизведение для смены устройства",
+    mic = "Микрофон",
+    bluetoothSco = "Bluetooth устройство",
+    telephony = "Телефонный приемник",
+    remoteSubmix = "Удаленный субмикс",
+    builtinEarpiece = "Динамик",
+    builtinSpeaker = "Система динамиков",
+    bluetoothA2dp = "Bluetooth A2DP устройство",
+    unknown = "Неизвестный тип"
 )
 
 internal val englishAppStrings = AppStrings(
@@ -82,7 +98,15 @@ internal val englishAppStrings = AppStrings(
     myFolder = "My records",
     saveRecordError = "Failed to save the record",
     saveRecordSuccess = "Record is saved in the Recordings/RecordEqualizer folder",
-    selectDeviceError = "Stop playing to change the device"
+    selectDeviceError = "Stop playing to change the device",
+    mic = "Microphone",
+    bluetoothSco = "Bluetooth device",
+    telephony = "Telephony",
+    remoteSubmix = "Remote submix",
+    builtinEarpiece = "Dynamic",
+    builtinSpeaker = "The system of dynamics",
+    bluetoothA2dp = "Bluetooth A2DP device",
+    unknown = "Unknown type"
 )
 
 val LocalAppStrings = staticCompositionLocalOf<AppStrings> {
