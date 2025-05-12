@@ -19,6 +19,12 @@ interface CoroutineManager {
         block: CoroutineBlock,
     ): Job
 
+    fun launchDefault(
+        scope: CoroutineScope,
+        onError: (Throwable) -> Unit,
+        block: CoroutineBlock,
+    ): Job
+
     fun launchCustom(
         scope: CoroutineScope,
         customDispatcher: CoroutineDispatcher,

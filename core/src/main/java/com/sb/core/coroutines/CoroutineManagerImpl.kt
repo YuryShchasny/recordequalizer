@@ -11,6 +11,7 @@ class CoroutineManagerImpl : CoroutineManager {
 
     private val mainDispatcher = Dispatchers.Main
     private val ioDispatcher = Dispatchers.IO
+    private val defaultDispatcher = Dispatchers.Default
 
     override fun launchIO(
         scope: CoroutineScope,
@@ -42,6 +43,23 @@ class CoroutineManagerImpl : CoroutineManager {
 
         return scope.launch(
             context = exceptionHandler + mainDispatcher,
+            block = block
+        )
+    }
+
+    override fun launchDefault(
+        scope: CoroutineScope,
+        onError: (Throwable) -> Unit,
+        block: CoroutineBlock,
+    ): Job {
+        val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
+            scope.launch(mainDispatcher) {
+                onError(throwable)
+            }
+        }
+
+        return scope.launch(
+            context = exceptionHandler + defaultDispatcher,
             block = block
         )
     }
