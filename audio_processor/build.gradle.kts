@@ -51,6 +51,5 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(platform(libs.koin.bom))
     implementation(libs.bundles.koin)
-    api(libs.bundles.media3)
     implementation(libs.oboe)
 }

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="request_permission">Provide access to your microphone for the application of the application</string>
+    <string name="left_channel">Left channel</string>
+    <string name="right_channel">Right channel</string>
+    <string name="record_device">Record device</string>
+    <string name="playback_device">Playback device</string>
+    <string name="_default">Default</string>
+    <string name="gain_amplitude">Gain amplitude</string>
+    <string name="profile">Profile</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="new_profile_name">New profile name</string>
+    <string name="save_new_profile">Save new profile</string>
+    <string name="profile_exists">This profile already exists, change the name</string>
+    <string name="error_play">Error when starting. Try again.</string>
+    <string name="compressor_effect">Compression effect</string>
+    <string name="stop_listening">Stop listening</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="start_listening">Start listening</string>
+    <string name="start_recording">Start recording</string>
+    <string name="save_record_error">Failed to save the record</string>
+    <string name="save_record_success">Record is saved in the Recordings/RecordEqualizer folder</string>
+    <string name="select_device_error">Stop playing to change the device</string>
+    <string name="mic">Microphone</string>
+    <string name="bluetooth_sco">Bluetooth device</string>
+    <string name="telephony">Telephony</string>
+    <string name="remote_submix">Remote submix</string>
+    <string name="builtin_earpiece">Dynamic</string>
+    <string name="builtin_speaker">The system of dynamics</string>
+    <string name="bluetooth_a2dp">Bluetooth A2DP device</string>
+    <string name="unknown">Unknown type</string>
+</resources>

@@ -10,9 +10,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sb.core.R
 import com.sb.core.resources.AppRes
 
 @Composable
@@ -26,7 +28,7 @@ fun RequestPermissionContent(
             .padding(16.dp), contentAlignment = Alignment.Center
     ) {
         Text(
-            text = AppRes.strings.requestPermission,
+            text = stringResource(R.string.request_permission),
             color = AppRes.colors.primary,
             fontSize = 20.sp,
             style = AppRes.type.gilroyBold,

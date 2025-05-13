@@ -35,6 +35,15 @@ abstract class BaseStore : InstanceKeeper.Instance, KoinComponent {
         block = safeAction
     )
 
+    fun launchDefault(
+        onError: (Throwable) -> Unit = {},
+        safeAction: CoroutineBlock,
+    ): Job = coroutineManager.launchDefault(
+        scope = scope,
+        onError = onError,
+        block = safeAction
+    )
+
     fun launchCustom(
         customDispatcher: CoroutineDispatcher,
         onError: (Throwable) -> Unit = {},

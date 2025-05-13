@@ -29,6 +29,23 @@ fun Equalizer(
     height: Dp = 400.dp
 ) {
     Column(modifier = modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            frequencies.forEach { frequency ->
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = String.format(null, "%.1f", frequency.second),
+                    color = AppRes.colors.secondary,
+                    fontSize = 12.sp,
+                    style = AppRes.type.gilroyBold,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
         Box(
             modifier = Modifier
                 .fillMaxWidth()
