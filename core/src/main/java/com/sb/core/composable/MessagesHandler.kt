@@ -20,7 +20,7 @@ fun <T> MessagesHandler(
     var message by remember { mutableStateOf<T?>(null) }
     val scope = rememberCoroutineScope()
     message?.let {
-        Toast.makeText(LocalContext.current, messageStringProvider(it), Toast.LENGTH_SHORT).show()
+        Toast.makeText(LocalContext.current, messageStringProvider(it), Toast.LENGTH_LONG).show()
         message = null
     }
     LaunchedEffect(Unit) {

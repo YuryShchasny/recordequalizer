@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="request_permission">Предоставьте доступ к вашему микрофону для работы приложения</string>
+    <string name="left_channel">Левый канал</string>
+    <string name="right_channel">Правый канал</string>
+    <string name="record_device">Записывающее устройство</string>
+    <string name="playback_device">Устройство воспроизведения</string>
+    <string name="_default">По умолчанию</string>
+    <string name="gain_amplitude">Усиление амплитуды</string>
+    <string name="profile">Профиль</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="new_profile_name">Название нового профиля</string>
+    <string name="save_new_profile">Сохранить новый профиль</string>
+    <string name="profile_exists">Данный профиль уже существует, измените название</string>
+    <string name="error_play">Ошибка при запуске. Попробуйте еще раз.</string>
+    <string name="compressor_effect">Эффект компрессии</string>
+    <string name="stop_listening">Остановить прослушивание</string>
+    <string name="stop_recording">Остановить запись</string>
+    <string name="start_recording">Начать запись</string>
+    <string name="start_listening">Начать прослушивание</string>
+    <string name="save_record_error">Не удалось сохранить запись</string>
+    <string name="save_record_success">Запись сохранена по пути %s</string>
+    <string name="select_device_error">Остановите воспроизведение для смены устройства</string>
+    <string name="mic">Микрофон</string>
+    <string name="bluetooth_sco">Bluetooth устройство</string>
+    <string name="telephony">Телефонный приемник</string>
+    <string name="remote_submix">Удаленный субмикс</string>
+    <string name="builtin_earpiece">Динамик</string>
+    <string name="builtin_speaker">Система динамиков</string>
+    <string name="bluetooth_a2dp">Bluetooth A2DP устройство</string>
+    <string name="unknown">Неизвестный тип</string>
+</resources>

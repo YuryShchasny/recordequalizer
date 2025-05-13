@@ -6,9 +6,11 @@
 using namespace oboe;
 
 AudioEngine::AudioEngine() {
+    mEqualizer = new Equalizer();
     mAmplitudeEffect = new AmplitudeEffect(0.0f);
     mCompressEffect = new CompressEffect(-10.0f, 4.0f);
     mChannelsEffect = new ChannelsEffect(false, false);
+    mEffects->push_back(mEqualizer);
     mEffects->push_back(mAmplitudeEffect);
     mEffects->push_back(mChannelsEffect);
 }
@@ -93,7 +95,7 @@ Result AudioEngine::openStreams(bool withRecording) {
     mDuplexStream->setSharedInputStream(mRecordingStream);
     mDuplexStream->setSharedOutputStream(mPlayStream);
     if (mFrequenciesSize > 0) {
-        mDuplexStream->initEqualizer(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
+        mEqualizer->initialize(mFrequenciesSize, mFrequencies, mFrequencyGains, mSampleRate);
     }
     if (mOnAudioReadyCallback) {
         mDuplexStream->onAudioDataReady = std::move(mOnAudioReadyCallback);
@@ -206,8 +208,8 @@ void AudioEngine::setGain(int frequency, float gain) {
     for (int i = 0; i < mFrequenciesSize; ++i) {
         if (mFrequencies[i] == frequency) {
             mFrequencyGains[i] = gain;
-            if (mDuplexStream) {
-                mDuplexStream->equalizer->updateGain(i, mFrequencyGains[i]);
+            if(mEqualizer->isReady()) {
+                mEqualizer->updateGain(i, mFrequencyGains[i]);
             }
         }
     }
@@ -216,8 +218,8 @@ void AudioEngine::setGain(int frequency, float gain) {
 void AudioEngine::setFrequencyGains(float *frequencyGains) {
     for (int i = 0; i < mFrequenciesSize; ++i) {
         mFrequencyGains[i] = frequencyGains[i];
-        if (mDuplexStream) {
-            mDuplexStream->equalizer->updateGain(i, frequencyGains[i]);
+        if(mEqualizer->isReady()) {
+            mEqualizer->updateGain(i, frequencyGains[i]);
         }
     }
 }

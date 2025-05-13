@@ -9,9 +9,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sb.core.R
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.ColorUiType
 import com.sb.core.resources.theme.EqualizerTheme
@@ -24,7 +26,7 @@ fun GainAmplitude(
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
-            text = AppRes.strings.gainAmplitude,
+            text = stringResource(R.string.gain_amplitude),
             color = AppRes.colors.primary,
             fontSize = 12.sp,
             style = AppRes.type.gilroySemibold

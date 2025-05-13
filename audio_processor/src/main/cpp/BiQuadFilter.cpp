@@ -3,8 +3,8 @@
 BiQuadFilter::BiQuadFilter() : x1(0), x2(0), y1(0), y2(0) {}
 
 void BiQuadFilter::setPeakingEQ(int frequency, float Q, float gainDB, int sampleRate) {
-    auto A = (float) pow(10, gainDB / 40.0f); // Преобразование дБ в коэффициент усиления
-    auto omega = (float) (2.0f * M_PI * frequency / sampleRate);
+    auto A = static_cast<float>(pow(10, gainDB / 40.0f)); // Преобразование дБ в коэффициент усиления
+    auto omega = static_cast<float>(2.0f * M_PI * frequency / sampleRate);
     float alpha = sin(omega) / (2.0f * Q);
 
     float b0 =  1 + alpha * A;

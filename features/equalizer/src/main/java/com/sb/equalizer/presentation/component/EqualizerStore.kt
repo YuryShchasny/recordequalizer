@@ -24,106 +24,8 @@ class EqualizerStore : BaseStore() {
 
     init {
         launchIO {
-            val profile = profilesRepository.getSelectedProfile()
-            profile?.let { updateSelectedProfile(it) }
-        }
-    }
-
-    fun dispatchIntent(intent: Intent) {
-        when (intent) {
-            is Intent.ChangeLeftChannel -> {
-                launchIO {
-                    _uiState.update {
-                        it?.copy(leftChannelEnabled = intent.enabled)
-                    }
-                    audioEngine.changeLeftChannel(intent.enabled)
-                }
-            }
-
-            is Intent.ChangeRightChannel -> {
-                launchIO {
-                    _uiState.update {
-                        it?.copy(rightChannelEnabled = intent.enabled)
-                    }
-                    audioEngine.changeRightChannel(intent.enabled)
-                }
-            }
-
-            is Intent.FrequencyGainChanged -> {
-                launchIO {
-                    _uiState.update { state ->
-                        state?.copy(
-                            frequencies = state.frequencies.map { frequency ->
-                                if (frequency.first == intent.frequency) {
-                                    frequency.copy(second = intent.value)
-                                } else frequency
-                            }
-                        )
-                    }
-                    audioEngine.setFrequencyGain(intent.frequency, intent.value)
-                }
-            }
-
-            is Intent.AmplitudeGainChanged -> {
-                launchIO {
-                    _uiState.update { state ->
-                        state?.copy(
-                            amplitude = intent.value
-                        )
-                    }
-                    audioEngine.setAmplitudeGain(intent.value)
-                }
-            }
-
-            is Intent.ChangeProfile -> {
-                launchIO {
-                    profilesRepository.setSelectedProfile(intent.profile.id)
-                    updateSelectedProfile(intent.profile)
-                }
-            }
-
-            is Intent.SaveNewProfile -> {
-                launchIO {
-                    state.value?.let { state ->
-                        val newProfile = Profile(
-                            name = intent.name,
-                            gains = state.frequencies.map { it.second },
-                            amplitude = state.amplitude,
-                            leftChannel = state.leftChannelEnabled,
-                            rightChannel = state.rightChannelEnabled,
-                            compressorEnabled = state.compressorEnabled,
-                        )
-                        profilesRepository.addProfile(newProfile)
-                        val profiles = profilesRepository.getProfiles()
-                        val selectedProfile = profiles.firstOrNull { it.name == newProfile.name }
-                        selectedProfile?.let {
-                            profilesRepository.setSelectedProfile(it.id)
-                            updateSelectedProfile(selectedProfile)
-                        }
-                    }
-                }
-            }
-
-            is Intent.DeleteProfile -> {
-                launchIO {
-                    profilesRepository.deleteProfile(intent.profile.id)
-                    _uiState.update {
-                        it?.copy(
-                            profiles = profilesRepository.getProfiles()
-                        )
-                    }
-                }
-            }
-
-            is Intent.EnableCompressor -> {
-                launchIO {
-                    _uiState.update {
-                        it?.copy(
-                            compressorEnabled = intent.enabled
-                        )
-                    }
-                    audioEngine.enableCompressor(intent.enabled)
-                }
+            profilesRepository.getSelectedProfile()?.let {
+                updateSelectedProfile(it)
             }
         }
     }
@@ -134,6 +36,104 @@ class EqualizerStore : BaseStore() {
             profile?.let { audioEngine.setProfile(it) }
         }
         super.onDestroy()
+    }
+
+    fun dispatchIntent(intent: Intent) {
+        launchMain {
+            when (intent) {
+                is Intent.ChangeLeftChannel -> changeLeftChannel(intent.enabled)
+                is Intent.ChangeRightChannel -> changeRightChannel(intent.enabled)
+                is Intent.FrequencyGainChanged -> changeFrequencyGain(
+                    intent.frequency,
+                    intent.value
+                )
+
+                is Intent.AmplitudeGainChanged -> changeAmplitude(intent.value)
+                is Intent.ChangeProfile -> changeProfile(intent.profile)
+                is Intent.SaveNewProfile -> saveProfile(intent.name)
+                is Intent.DeleteProfile -> deleteProfile(intent.profile)
+                is Intent.EnableCompressor -> enableCompressor(intent.enabled)
+            }
+        }
+    }
+
+    private suspend fun changeLeftChannel(enabled: Boolean) {
+        _uiState.update {
+            it?.copy(leftChannelEnabled = enabled)
+        }
+        audioEngine.changeLeftChannel(enabled)
+    }
+
+    private suspend fun changeRightChannel(enabled: Boolean) {
+        _uiState.update {
+            it?.copy(rightChannelEnabled = enabled)
+        }
+        audioEngine.changeRightChannel(enabled)
+    }
+
+    private suspend fun changeFrequencyGain(frequency: Int, value: Float) {
+        _uiState.update { state ->
+            state?.copy(
+                frequencies = state.frequencies.map { frequencyPair ->
+                    if (frequencyPair.first == frequency) {
+                        frequencyPair.copy(second = value)
+                    } else frequencyPair
+                }
+            )
+        }
+        audioEngine.setFrequencyGain(frequency, value)
+    }
+
+    private suspend fun changeAmplitude(value: Float) {
+        _uiState.update { state ->
+            state?.copy(
+                amplitude = value
+            )
+        }
+        audioEngine.setAmplitudeGain(value)
+    }
+
+    private suspend fun changeProfile(profile: Profile) {
+        profilesRepository.setSelectedProfile(profile.id)
+        updateSelectedProfile(profile)
+    }
+
+    private suspend fun saveProfile(name: String) {
+        state.value?.let { state ->
+            val newProfile = Profile(
+                name = name,
+                gains = state.frequencies.map { it.second },
+                amplitude = state.amplitude,
+                leftChannel = state.leftChannelEnabled,
+                rightChannel = state.rightChannelEnabled,
+                compressorEnabled = state.compressorEnabled,
+            )
+            profilesRepository.addProfile(newProfile)
+            val profiles = profilesRepository.getProfiles()
+            val selectedProfile = profiles.firstOrNull { it.name == newProfile.name }
+            selectedProfile?.let {
+                profilesRepository.setSelectedProfile(it.id)
+                updateSelectedProfile(selectedProfile)
+            }
+        }
+    }
+
+    private suspend fun deleteProfile(profile: Profile) {
+        profilesRepository.deleteProfile(profile.id)
+        _uiState.update {
+            it?.copy(
+                profiles = profilesRepository.getProfiles()
+            )
+        }
+    }
+
+    private suspend fun enableCompressor(enabled: Boolean) {
+        _uiState.update {
+            it?.copy(
+                compressorEnabled = enabled
+            )
+        }
+        audioEngine.enableCompressor(enabled)
     }
 
     private suspend fun updateSelectedProfile(profile: Profile) {

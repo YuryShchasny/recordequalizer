@@ -1,12 +1,9 @@
 package com.sb.home.presentation.ui.composable
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import com.sb.core.resources.AppRes
+import androidx.compose.ui.res.stringResource
+import com.sb.core.R
 
 @Composable
 fun ListenButton(
@@ -15,12 +12,9 @@ fun ListenButton(
     modifier: Modifier = Modifier,
 ) {
     HomeButton(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .padding(horizontal = 16.dp),
-        text = if (isPlaying) AppRes.strings.stopListening
-        else AppRes.strings.startListening,
+        modifier = modifier,
+        text = if (isPlaying) stringResource(R.string.stop_listening)
+        else stringResource(R.string.start_listening),
         onClick = onClick
     )
 }

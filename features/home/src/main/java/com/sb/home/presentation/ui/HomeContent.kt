@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -20,20 +20,21 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sb.core.R
 import com.sb.core.composable.ClickableIcon
-import com.sb.core.composable.MessagesHandler
 import com.sb.core.composable.Launched
 import com.sb.core.composable.Loading
+import com.sb.core.composable.MessagesHandler
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.ColorUiType
 import com.sb.core.resources.theme.EqualizerTheme
 import com.sb.home.presentation.component.HomeComponent
 import com.sb.home.presentation.component.HomeStore
 import com.sb.home.presentation.ui.composable.AudioDeviceDropDownMenu
-import com.sb.home.presentation.ui.composable.ListenButton
-import com.sb.home.presentation.ui.composable.RecordButton
+import com.sb.home.presentation.ui.composable.PlayButtons
 import com.sb.home.presentation.ui.composable.Waveform
 
 @Composable
@@ -59,10 +60,15 @@ fun HomeContent(
         messageStringProvider = {
             when (it) {
                 null -> null
-                HomeStore.Messages.PlayError -> AppRes.strings.errorPlay
-                HomeStore.Messages.SaveRecordError -> AppRes.strings.saveRecordError
-                HomeStore.Messages.SaveRecordSuccess -> AppRes.strings.saveRecordSuccess
-                HomeStore.Messages.SelectDeviceError -> AppRes.strings.selectDeviceError
+                HomeStore.Messages.PlayError -> stringResource(R.string.error_play)
+                HomeStore.Messages.SaveRecordError -> stringResource(R.string.save_record_error)
+                is HomeStore.Messages.SaveRecordSuccess -> String.format(
+                    locale = null,
+                    format = stringResource(R.string.save_record_success),
+                    it.path
+                )
+
+                HomeStore.Messages.SelectDeviceError -> stringResource(R.string.select_device_error)
             }
         }
     )
@@ -119,21 +125,21 @@ private fun HomeScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     selectedDevice = state.selectedInputDevice,
                     devices = state.inputDevices,
-                    label = AppRes.strings.recordDevice,
+                    label = stringResource(R.string.record_device),
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectInputDevice(it)) }
                 )
                 AudioDeviceDropDownMenu(
                     modifier = Modifier.fillMaxWidth(),
                     selectedDevice = state.selectedOutputDevice,
                     devices = state.outputDevices,
-                    label = AppRes.strings.playbackDevice,
+                    label = stringResource(R.string.playback_device),
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )
             }
             Waveform(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp),
+                    .fillMaxHeight(0.4f),
                 amplitudes = state.streamAmplitudes,
                 scale = 15f
             )
@@ -143,38 +149,12 @@ private fun HomeScreenContent(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                AnimatedContent(
-                    targetState = state.playing
-                ) { isPlaying ->
-                    if (isPlaying) {
-                        if (state.recordMode) {
-                            RecordButton(
-                                isPlaying = true,
-                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
-                            )
-                        } else {
-                            ListenButton(
-                                isPlaying = true,
-                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
-                            )
-                        }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(20.dp),
-                        ) {
-                            ListenButton(
-                                isPlaying = false,
-                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
-                            )
-                            RecordButton(
-                                isPlaying = false,
-                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
-                            )
-                        }
-                    }
-                }
+                PlayButtons(
+                    isPlaying = state.playing,
+                    isRecordMode = state.recordMode,
+                    onListenClick = { dispatchIntent(HomeStore.Intent.ListenClick) },
+                    onRecordClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
+                )
             }
         }
     }

@@ -1,6 +1,7 @@
 package com.sb.recordequalizer.root
 
 import android.Manifest
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.Orientation
@@ -45,7 +46,6 @@ fun RootContent(
         is RootStore.State.Ready -> {
             keepSplashScreen(false)
             EqualizerTheme(
-                language = (state as RootStore.State.Ready).language,
                 colorUiType = (state as RootStore.State.Ready).colorUiType
             ) {
                 val systemUiController = rememberSystemUiController()
@@ -78,12 +78,15 @@ fun RootContent(
 
         RootStore.State.Progress -> {
             keepSplashScreen(true)
+            val permissions = mutableListOf<String>(
+                Manifest.permission.RECORD_AUDIO,
+            )
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+                permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
             Launched {
                 permissionRequestLauncher.launch(
-                    arrayOf(
-                        Manifest.permission.RECORD_AUDIO,
-                        Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                    )
+                    permissions.toTypedArray()
                 )
             }
         }

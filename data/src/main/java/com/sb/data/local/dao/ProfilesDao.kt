@@ -12,7 +12,7 @@ interface ProfilesDao {
     suspend fun insertProfile(profile: ProfileDbo)
 
     @Query("SELECT * FROM profiles")
-    fun getProfiles(): List<ProfileDbo>
+    suspend fun getProfiles(): List<ProfileDbo>
 
     @Query("DELETE FROM profiles WHERE id = :id")
     suspend fun deleteProfile(id: Long)
