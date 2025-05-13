@@ -8,9 +8,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -28,10 +25,7 @@ fun RecordButton(
     modifier: Modifier = Modifier,
 ) {
     HomeButton(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(54.dp)
-            .padding(horizontal = 16.dp),
+        modifier = modifier,
         text = if (isPlaying) AppRes.strings.stopRecording
         else AppRes.strings.startRecording,
         onClick = onClick,

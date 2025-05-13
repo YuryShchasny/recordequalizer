@@ -32,8 +32,7 @@ import com.sb.core.resources.theme.EqualizerTheme
 import com.sb.home.presentation.component.HomeComponent
 import com.sb.home.presentation.component.HomeStore
 import com.sb.home.presentation.ui.composable.AudioDeviceDropDownMenu
-import com.sb.home.presentation.ui.composable.ListenButton
-import com.sb.home.presentation.ui.composable.RecordButton
+import com.sb.home.presentation.ui.composable.PlayButtons
 import com.sb.home.presentation.ui.composable.Waveform
 
 @Composable
@@ -66,6 +65,7 @@ fun HomeContent(
                     format = AppRes.strings.saveRecordSuccess,
                     it.path
                 )
+
                 HomeStore.Messages.SelectDeviceError -> AppRes.strings.selectDeviceError
             }
         }
@@ -147,38 +147,12 @@ private fun HomeScreenContent(
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
-                AnimatedContent(
-                    targetState = state.playing
-                ) { isPlaying ->
-                    if (isPlaying) {
-                        if (state.recordMode) {
-                            RecordButton(
-                                isPlaying = true,
-                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
-                            )
-                        } else {
-                            ListenButton(
-                                isPlaying = true,
-                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
-                            )
-                        }
-                    } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(20.dp),
-                        ) {
-                            ListenButton(
-                                isPlaying = false,
-                                onClick = { dispatchIntent(HomeStore.Intent.ListenClick) }
-                            )
-                            RecordButton(
-                                isPlaying = false,
-                                onClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
-                            )
-                        }
-                    }
-                }
+                PlayButtons(
+                    isPlaying = state.playing,
+                    isRecordMode = state.recordMode,
+                    onListenClick = { dispatchIntent(HomeStore.Intent.ListenClick) },
+                    onRecordClick = { dispatchIntent(HomeStore.Intent.RecordClick) }
+                )
             }
         }
     }

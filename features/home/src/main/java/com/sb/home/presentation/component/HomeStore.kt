@@ -81,6 +81,12 @@ class HomeStore : BaseStore() {
     }
 
     private suspend fun startRecording() {
+        _uiState.update {
+            it?.copy(
+                playing = !audioEngine.audioIsPlaying(),
+                recordMode = true
+            )
+        }
         val result = if (audioEngine.audioIsPlaying()) {
             val pauseResult = audioEngine.pauseAudio()
             saveRecord()
@@ -91,12 +97,17 @@ class HomeStore : BaseStore() {
         _uiState.update {
             it?.copy(
                 playing = result,
-                recordMode = true
             )
         }
     }
 
     private suspend fun startListening() {
+        _uiState.update {
+            it?.copy(
+                playing = !audioEngine.audioIsPlaying(),
+                recordMode = false
+            )
+        }
         val result = if (audioEngine.audioIsPlaying()) {
             audioEngine.pauseAudio()
         } else {
@@ -105,7 +116,6 @@ class HomeStore : BaseStore() {
         _uiState.update {
             it?.copy(
                 playing = result,
-                recordMode = false
             )
         }
     }
