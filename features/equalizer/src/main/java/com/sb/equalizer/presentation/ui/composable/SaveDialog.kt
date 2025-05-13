@@ -28,11 +28,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.sb.core.R
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.EqualizerTheme
 import com.sb.domain.entity.Profile
@@ -60,7 +62,7 @@ fun SaveDialog(
                         .padding(24.dp),
                 ) {
                     Text(
-                        text = AppRes.strings.saveNewProfile,
+                        text = stringResource(R.string.save_new_profile),
                         color = AppRes.colors.primary,
                         style = AppRes.type.gilroySemibold,
                         fontSize = 16.sp
@@ -96,7 +98,7 @@ fun SaveDialog(
                                 interactionSource = remember { MutableInteractionSource() },
                                 placeholder = {
                                     Text(
-                                        text = AppRes.strings.newProfileName,
+                                        text = stringResource(R.string.new_profile_name),
                                         color = AppRes.colors.primary.copy(0.8f),
                                         style = AppRes.type.gilroy,
                                         fontSize = 14.sp
@@ -119,7 +121,7 @@ fun SaveDialog(
                     if (hasError) {
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = AppRes.strings.profileExists,
+                            text = stringResource(R.string.profile_exists),
                             style = AppRes.type.gilroy,
                             fontSize = 10.sp,
                             color = AppRes.colors.red,
@@ -137,7 +139,7 @@ fun SaveDialog(
                                 indication = ripple(radius = 16.dp, bounded = false),
                                 onClick = { onDismiss() }
                             ),
-                            text = AppRes.strings.cancel,
+                            text = stringResource(R.string.cancel),
                             fontSize = 16.sp,
                             style = AppRes.type.gilroy,
                             color = AppRes.colors.primary.copy(0.8f)
@@ -153,7 +155,7 @@ fun SaveDialog(
                                     }
                                 }
                             ),
-                            text = AppRes.strings.save,
+                            text = stringResource(R.string.save),
                             fontSize = 18.sp,
                             style = AppRes.type.gilroyMedium,
                             color = AppRes.colors.primary

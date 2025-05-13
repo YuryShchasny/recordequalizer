@@ -21,9 +21,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sb.core.R
 import com.sb.core.resources.AppRes
 import com.sb.core.resources.theme.ColorUiType
 import com.sb.core.resources.theme.EqualizerTheme
@@ -48,7 +50,7 @@ fun AudioDeviceDropDownMenu(
                 device.productName.toString() + " " + getAudioDeviceTypeString(
                     device.type
                 )
-            } ?: AppRes.strings.default,
+            } ?: stringResource(R.string._default),
             onValueChange = {},
             readOnly = true,
             singleLine = true,
@@ -108,14 +110,14 @@ fun AudioDeviceDropDownMenu(
 @Composable
 private fun getAudioDeviceTypeString(audioDeviceType: Int): String {
     return when (audioDeviceType) {
-        AudioDeviceInfo.TYPE_BUILTIN_MIC -> AppRes.strings.mic
-        AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> AppRes.strings.bluetoothSco
-        AudioDeviceInfo.TYPE_TELEPHONY -> AppRes.strings.telephony
-        AudioDeviceInfo.TYPE_REMOTE_SUBMIX -> AppRes.strings.remoteSubmix
-        AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> AppRes.strings.builtinEarpiece
-        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> AppRes.strings.builtinSpeaker
-        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> AppRes.strings.bluetoothA2dp
-        else -> AppRes.strings.unknown
+        AudioDeviceInfo.TYPE_BUILTIN_MIC -> stringResource(R.string.mic)
+        AudioDeviceInfo.TYPE_BLUETOOTH_SCO -> stringResource(R.string.bluetooth_sco)
+        AudioDeviceInfo.TYPE_TELEPHONY -> stringResource(R.string.telephony)
+        AudioDeviceInfo.TYPE_REMOTE_SUBMIX -> stringResource(R.string.remote_submix)
+        AudioDeviceInfo.TYPE_BUILTIN_EARPIECE -> stringResource(R.string.builtin_earpiece)
+        AudioDeviceInfo.TYPE_BUILTIN_SPEAKER -> stringResource(R.string.builtin_speaker)
+        AudioDeviceInfo.TYPE_BLUETOOTH_A2DP -> stringResource(R.string.bluetooth_a2dp)
+        else -> stringResource(R.string.unknown)
     }
 }
 

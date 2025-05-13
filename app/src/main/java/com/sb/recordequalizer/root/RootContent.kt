@@ -46,7 +46,6 @@ fun RootContent(
         is RootStore.State.Ready -> {
             keepSplashScreen(false)
             EqualizerTheme(
-                language = (state as RootStore.State.Ready).language,
                 colorUiType = (state as RootStore.State.Ready).colorUiType
             ) {
                 val systemUiController = rememberSystemUiController()

@@ -2,7 +2,8 @@ package com.sb.home.presentation.ui.composable
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import com.sb.core.resources.AppRes
+import androidx.compose.ui.res.stringResource
+import com.sb.core.R
 
 @Composable
 fun ListenButton(
@@ -12,8 +13,8 @@ fun ListenButton(
 ) {
     HomeButton(
         modifier = modifier,
-        text = if (isPlaying) AppRes.strings.stopListening
-        else AppRes.strings.startListening,
+        text = if (isPlaying) stringResource(R.string.stop_listening)
+        else stringResource(R.string.start_listening),
         onClick = onClick
     )
 }

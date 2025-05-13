@@ -20,8 +20,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.sb.core.R
 import com.sb.core.composable.ClickableIcon
 import com.sb.core.composable.Launched
 import com.sb.core.composable.Loading
@@ -58,15 +60,15 @@ fun HomeContent(
         messageStringProvider = {
             when (it) {
                 null -> null
-                HomeStore.Messages.PlayError -> AppRes.strings.errorPlay
-                HomeStore.Messages.SaveRecordError -> AppRes.strings.saveRecordError
+                HomeStore.Messages.PlayError -> stringResource(R.string.error_play)
+                HomeStore.Messages.SaveRecordError -> stringResource(R.string.save_record_error)
                 is HomeStore.Messages.SaveRecordSuccess -> String.format(
                     locale = null,
-                    format = AppRes.strings.saveRecordSuccess,
+                    format = stringResource(R.string.save_record_success),
                     it.path
                 )
 
-                HomeStore.Messages.SelectDeviceError -> AppRes.strings.selectDeviceError
+                HomeStore.Messages.SelectDeviceError -> stringResource(R.string.select_device_error)
             }
         }
     )
@@ -123,14 +125,14 @@ private fun HomeScreenContent(
                     modifier = Modifier.fillMaxWidth(),
                     selectedDevice = state.selectedInputDevice,
                     devices = state.inputDevices,
-                    label = AppRes.strings.recordDevice,
+                    label = stringResource(R.string.record_device),
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectInputDevice(it)) }
                 )
                 AudioDeviceDropDownMenu(
                     modifier = Modifier.fillMaxWidth(),
                     selectedDevice = state.selectedOutputDevice,
                     devices = state.outputDevices,
-                    label = AppRes.strings.playbackDevice,
+                    label = stringResource(R.string.playback_device),
                     onSelected = { dispatchIntent(HomeStore.Intent.SelectOutputDevice(it)) }
                 )
             }

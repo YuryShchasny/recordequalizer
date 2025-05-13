@@ -15,7 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.sb.core.R
 import com.sb.core.resources.AppRes
 
 @Composable
@@ -26,8 +28,8 @@ fun RecordButton(
 ) {
     HomeButton(
         modifier = modifier,
-        text = if (isPlaying) AppRes.strings.stopRecording
-        else AppRes.strings.startRecording,
+        text = if (isPlaying) stringResource(R.string.stop_recording)
+        else stringResource(R.string.start_recording),
         onClick = onClick,
         icon = {
             if (isPlaying) {
