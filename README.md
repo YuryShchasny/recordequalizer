@@ -1,5 +1,5 @@
 <p align="center">
-      <img src="https://i.ibb.co/20NPj8rs/microphone-svgrepo-com-1.png" width="726">
+      <img src="https://i.ibb.co/20NPj8rs/microphone-svgrepo-com-1.png" width="33%">
 </p>
 
 <p align="center">
@@ -25,6 +25,13 @@ It is built using [Oboe](https://github.com/google/oboe) — a high-performance 
   - Bit depth: **16-bit**
   - Channels: **Stereo**
 ---
+
+## 📱 Screenshots
+
+<div style="display:flex;" >
+<img src="https://i.ibb.co/0jtMdC79/Screenshot-20250513-120444.png" width="32%" >
+<img src="https://i.ibb.co/b5mH6vVq/Screenshot-20250513-120545.png" width="32%" >
+<img src="https://i.ibb.co/B29kwLyd/Screenshot-20250513-120658.png" width="32%" >
 
 ## 🚀 Distribute
 
