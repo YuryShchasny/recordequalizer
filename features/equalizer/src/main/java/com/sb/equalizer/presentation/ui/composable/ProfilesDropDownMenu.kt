@@ -1,12 +1,16 @@
 package com.sb.equalizer.presentation.ui.composable
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -16,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,7 +45,9 @@ fun ProfilesDropDownMenu(
         onExpandedChange = { expanded = it },
     ) {
         TextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(MenuAnchorType.PrimaryNotEditable),
             value = selectedProfile.name,
             onValueChange = {},
             readOnly = true,
@@ -53,7 +60,14 @@ fun ProfilesDropDownMenu(
                     style = AppRes.type.gilroy
                 )
             },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            trailingIcon = {
+                val rotation by animateFloatAsState(if (expanded) 180f else 0f)
+                Icon(
+                    imageVector = Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    modifier = Modifier.rotate(rotation)
+                )
+            },
             shape = RoundedCornerShape(12.dp),
             colors = ExposedDropdownMenuDefaults.textFieldColors().copy(
                 focusedIndicatorColor = Color.Transparent,
@@ -62,7 +76,7 @@ fun ProfilesDropDownMenu(
                 unfocusedContainerColor = AppRes.colors.secondary.copy(alpha = 0.1f),
             )
         )
-        if(list.isNotEmpty()) {
+        if (list.isNotEmpty()) {
             ExposedDropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
