@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-   ![Android](https://img.shields.io/badge/Platform-Android-green)
-   ![Version](https://img.shields.io/badge/Verison-1.0.0-blue)
+   <img src="https://img.shields.io/badge/Platform-Android-green.svg")>
+   <img src="https://img.shields.io/badge/Verison-1.0.0-blue.svg")>
 </p>
 
 ## 🎧 About
